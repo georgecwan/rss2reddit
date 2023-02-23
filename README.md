@@ -1,1 +1,1 @@
-# canada-news
+# Subreddit News
