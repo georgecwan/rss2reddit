@@ -9,7 +9,8 @@
         {
             "subreddit_name": "subreddit_name",
             "rss_url": "rss_url",
-            "delay": "delay_in_seconds"
+            "delay": "delay_in_seconds",
+            "flair": "optional_flair"
         },
         {
             "subreddit_name": "subreddit_name2",
