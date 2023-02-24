@@ -54,7 +54,7 @@ and client secret (beside the text "secret").
 - Fill in the "subreddits" section with a list of all the subreddits and the corresponding
 RSS url to generate posts from.
   - The delay parameter should be a positive integer representing how many seconds the program waits before 
-    checking the RSS feed for updates.
+    checking the RSS feed for updates. This is the only paramater that **_does not have quotes_**.
   - Format for one subreddit:
     ```
       "subreddits": [
@@ -96,4 +96,5 @@ RSS url to generate posts from.
 - Exit the script with Ctrl-C
 
 # Useful Links
+- [Reddit Help](https://www.reddithelp.com/hc/en-us)
 - [Reddit Bottiquette](https://www.reddit.com/wiki/bottiquette/)
