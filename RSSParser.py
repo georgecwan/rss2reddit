@@ -1,5 +1,4 @@
 from bs4 import BeautifulSoup
-from markdownify import markdownify as md
 
 # Parses RSS Feed and returns the newest headline and URL
 def find_newest_headline(xml_data):
