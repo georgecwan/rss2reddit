@@ -44,7 +44,7 @@ class RedditBot:
             json.dump(self.db, file, indent=4)
 
     def rss_request(self, url, key):
-        # try:
+        try:
             resp = requests.get(url, headers={
                 'If-Modified-Since': self.db[key]["Last_Modified"],
                 'If-None-Match': self.db[key]["ETag"]
@@ -53,8 +53,8 @@ class RedditBot:
                 self.db[key]["Last_Modified"] = resp.headers['Last-Modified'] if 'Last-Modified' in resp.headers else None
                 self.db[key]["ETag"] = resp.headers['ETag'] if 'ETag' in resp.headers else None
                 return resp.text
-        # except Exception as e:
-        #     print(f'Error requesting {url}: {str(e)}')
+        except Exception as e:
+            print(f'Error requesting {url}: {str(e)}')
 
     def post_to_subreddit(self, sub_name, title, link, flair_text=None):
         # Posts to subreddit
