@@ -91,9 +91,11 @@ RSS url to generate posts from.
 
 # Running the Script
 - Install Python
-- Install dependecies from requirements.txt
-- Run main.py script
-- Exit the script with Ctrl-C
+- Open your command-line app (e.g. Powershell, Terminal, etc.)
+- Navigate to your local copy of the RSS-to-Subreddit folder
+- Install dependencies from requirements.txt: `pip install -r requirements.txt`
+- Run script: `python main.py`
+- Exit the script with Ctrl-C (Note: Reddit posts will stop being made by the script)
 
 # Useful Links
 - [Reddit Help](https://www.reddithelp.com/hc/en-us)
