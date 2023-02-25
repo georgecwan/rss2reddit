@@ -6,12 +6,36 @@ import time
 from RSSParser import find_newest_headline
 
 
+def load_config(config_file):
+    # Loads the config file
+    try:
+        with open(config_file) as json_data_file:
+            config = json.load(json_data_file)
+            return config['credentials'], config['subreddits']
+    except Exception as e:
+        print(f'Error loading {config_file}: {str(e)}')
+
+
+def load_db(filename):
+    # Loads the database file
+    try:
+        with open(filename) as file:
+            return json.load(file)
+    except Exception as e:
+        print(f'Error loading {filename}: {str(e)}')
+        print(f'Creating new {filename} file...')
+        return {}
+
+
 class RedditBot:
+    user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) " \
+                 "Chrome/108.0.0.0 Safari/537.36 OPR/94.0.0.0"
+
     def __init__(self):
         # Initializes db dictionary, sets self.db
-        self.db = self.load_db('db.json')
+        self.db = load_db('db.json')
         # Loads config file, sets self.credentials and self.sub_list
-        self.credentials, self.sub_list = self.load_config('config.json')
+        self.credentials, self.sub_list = load_config('config.json')
         print("Config:", self.credentials, self.sub_list)
         # Initializes reddit praw object
         self.reddit = praw.Reddit(username = self.credentials['user'],
@@ -20,25 +44,6 @@ class RedditBot:
                                 client_secret = self.credentials['client_secret'],
                                 user_agent = "Subreddit-News:V1.0 by /u/GeoWa")
 
-    def load_config(self, config_file):
-        # Loads the config file
-        try:
-            with open(config_file) as json_data_file:
-                config = json.load(json_data_file)
-                return config['credentials'], config['subreddits']
-        except Exception as e:
-            print(f'Error loading {config_file}: {str(e)}')
-
-    def load_db(self, filename):
-        # Loads the database file
-        try:
-            with open(filename) as file:
-                return json.load(file)
-        except Exception as e:
-            print(f'Error loading {filename}: {str(e)}')
-            print(f'Creating new {filename} file...')
-            return {}
-
     def update_db(self, filename):
         with open(filename, 'w') as file:
             json.dump(self.db, file, indent=4)
@@ -46,6 +51,7 @@ class RedditBot:
     def rss_request(self, url, key):
         try:
             resp = requests.get(url, headers={
+                'User-Agent': self.user_agent,
                 'If-Modified-Since': self.db[key]["Last_Modified"],
                 'If-None-Match': self.db[key]["ETag"]
             })
