@@ -108,13 +108,14 @@ class RedditBot:
                     title, link, guid = find_newest_headline(self.rss_request(sub_info['rss_url'], key))
                     if self.db[key]['Last_Id'] == guid:
                         print("No new stories since last check")
-                        new_update = self.db[key]['Update_Time'] + 300
+                        new_update = int(time.time()) + 300
+                        self.db[key]['Update_Time'] = new_update
                     else:
                         print("New story found! Making reddit post...")
                         self.post_to_subreddit(sub_info['subreddit_name'], title, link,
                                                sub_info['flair'] if 'flair' in sub_info else None)
-                        new_update = int(self.db[key]['Update_Time'] + sub_info['delay'])
-                    self.db[key]['Update_Time'] = new_update
+                        new_update = int(time.time()) + sub_info['delay']
+                        self.db[key].update({'Last_Id': guid, 'Update_Time': new_update})
                     if new_update < next_update:
                         next_update = new_update
                 else:
