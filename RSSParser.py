@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 
+
 # Parses RSS Feed and returns the newest headline and URL
 def find_newest_headline(xml_data):
     soup = BeautifulSoup(xml_data, 'lxml-xml')
