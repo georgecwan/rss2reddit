@@ -1,5 +1,8 @@
+from datetime import datetime
 import math
 import json
+import pause
+from pprint import pprint
 import praw
 import requests
 import time
@@ -36,7 +39,8 @@ class RedditBot:
         self.db = load_db('db.json')
         # Loads config file, sets self.credentials and self.sub_list
         self.credentials, self.sub_list = load_config('config.json')
-        print("Config:", self.credentials, self.sub_list)
+        print("Config List:", end=' ')
+        pprint(self.sub_list)
         # Initializes reddit praw object
         self.reddit = praw.Reddit(username = self.credentials['user'],
                                 password = self.credentials['password'],
@@ -55,10 +59,12 @@ class RedditBot:
                 'If-Modified-Since': self.db[key]["Last_Modified"],
                 'If-None-Match': self.db[key]["ETag"]
             })
-            if resp.ok:
+            if resp.status_code == 200:
                 self.db[key]["Last_Modified"] = resp.headers['Last-Modified'] if 'Last-Modified' in resp.headers else None
                 self.db[key]["ETag"] = resp.headers['ETag'] if 'ETag' in resp.headers else None
                 return resp.text
+            elif resp.status_code == 304:
+                return None
         except Exception as e:
             print(f'Error requesting {url}: {str(e)}')
 
@@ -102,19 +108,27 @@ class RedditBot:
                 key = sub_info['subreddit_name'] + sub_info['rss_url']
                 if key not in self.db:
                     self.db[key] = {'Last_Modified': None, 'ETag': None}
-                    title, link, guid = find_newest_headline(self.rss_request(sub_info['rss_url'], key))
+                    response_text = self.rss_request(sub_info['rss_url'], key)
+                    title, link, guid = find_newest_headline(response_text)
                     print("New story found! Making reddit post...")
                     self.post_to_subreddit(sub_info['subreddit_name'], title, link,
                                            sub_info['flair'] if 'flair' in sub_info else None)
-                    new_update = int(time.time()) + sub_info['delay']
+                    new_update = math.ceil(time.time()) + sub_info['delay']
                     self.db[key].update({'Last_Id': guid, 'Update_Time': new_update})
                     if new_update < next_update:
                         next_update = new_update
-                elif self.db[key]['Update_Time'] <= int(time.time()):
-                    title, link, guid = find_newest_headline(self.rss_request(sub_info['rss_url'], key))
+                elif self.db[key]['Update_Time'] <= math.ceil(time.time()):
+                    response_text = self.rss_request(sub_info['rss_url'], key)
+                    if not response_text:
+                        print("No new data from RSS feed")
+                        new_update = int(time.time()) + 3600
+                        next_update = new_update if new_update < next_update else next_update
+                        self.db[key]['Update_Time'] = new_update
+                        continue
+                    title, link, guid = find_newest_headline(response_text)
                     if self.db[key]['Last_Id'] == guid:
                         print("No new stories since last check")
-                        new_update = int(time.time()) + 300
+                        new_update = int(time.time()) + 3600
                         self.db[key]['Update_Time'] = new_update
                     else:
                         print("New story found! Making reddit post...")
@@ -131,9 +145,8 @@ class RedditBot:
             print("Updating db.json...")
             self.update_db('db.json')
             # Wait until next update
-            print(f"Next update in {next_update - int(time.time())} seconds")
-            time.sleep(next_update - int(time.time()))
-            break
+            print(f"Next update at {datetime.fromtimestamp(next_update)}")
+            pause.until(next_update)
 
 
 if __name__ == "__main__":
