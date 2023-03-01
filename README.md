@@ -38,7 +38,8 @@ and client secret (beside the text "secret").
         {
             "subreddit_name": "subreddit_name",
             "rss_url": "rss_url",
-            "delay": "delay_in_seconds"
+            "delay": "delay_in_seconds",
+            "flair": "flair_text"
         },
         {
             "subreddit_name": "subreddit_name2",
@@ -53,51 +54,58 @@ and client secret (beside the text "secret").
   - Enter the client id and client secret from the [previous step](#register-app-on-reddit).
 - Fill in the "subreddits" section with a list of all the subreddits and the corresponding
 RSS url to generate posts from.
-  - The delay parameter should be a positive integer representing how many seconds the program waits before 
-    checking the RSS feed for updates. This is the only paramater that **_does not have quotes_**.
-  - Format for one subreddit:
-    ```
-      "subreddits": [
-          {
-              "subreddit_name": "NAME_OF_SUB_TO_POST_TO",
-              "rss_url": "URL_OF_RSS_FEED",
-              "delay": ENTER_NUMBER
-          }
-      ]
+- The delay parameter should be a positive integer representing how many seconds the program waits before 
+  checking the RSS feed for updates. This is the only paramater that does not have quotation marks around it.
+  - The flair parameter is optional. If you want to add flair to your posts, enter the text you want to use as flair.
+  Otherwise, do not include the flair parameter in your config file. 
+    - Format for one subreddit (no flairs):
       ```
-  - Format for three subreddits:
-    ```
-      "subreddits": [
-          {
-              "subreddit_name": "NAME_OF_SUB_TO_POST_TO",
-              "rss_url": "URL_OF_RSS_FEED",
-              "delay": ENTER_NUMBER
-          },
-          {
-              "subreddit_name": "SECOND_SUB",
-              "rss_url": "SECOND_URL",
-              "delay": ENTER_NUMBER
-          },
-          {
-              "subreddit_name": "THIRD_SUB",
-              "rss_url": "THIRD_URL",
-              "delay": ENTER_NUMBER
-          }
-      ]
-      ```
+        "subreddits": [
+            {
+                "subreddit_name": "NAME_OF_SUB_TO_POST_TO",
+                "rss_url": "URL_OF_RSS_FEED",
+                "delay": ENTER_NUMBER
+            }
+        ]
+        ```
+      - Format for three subreddits (some flairs):
+        ```
+          "subreddits": [
+              {
+                  "subreddit_name": "NAME_OF_SUB_TO_POST_TO",
+                  "rss_url": "URL_OF_RSS_FEED",
+                  "delay": ENTER_NUMBER,
+                  "flair": "FLAIR_TEXT"
+              },
+              {
+                  "subreddit_name": "SECOND_SUB",
+                  "rss_url": "SECOND_URL",
+                  "delay": ENTER_NUMBER
+              },
+              {
+                  "subreddit_name": "THIRD_SUB",
+                  "rss_url": "THIRD_URL",
+                  "delay": ENTER_NUMBER,
+                  "flair": "FLAIR_TEXT"
+              }
+          ]
+          ```
 - Everything in the config file except the delay values should be contained in quotes.
 
 **KEEP YOUR OWN CONFIG.JSON PRIVATE. DO NOT SHARE WITH ANYONE ELSE.**
 
 # Running the Script
-- Install Python [here](https://www.python.org/downloads/) and make sure python is added to path
-  - The step above is unnecessary if Python 3 is already installed
+- Install Python [here](https://www.python.org/downloads/)
+  - Select the option to add Python to path during installation if it appears
+  - If Python 3 is already installed on your machine, you do not have to reinstall it
 - Open your command-line app (e.g. Powershell, Terminal, etc.)
+- Type `python --version` and press enter. Make sure that the Python version shown is 3.10 or later, you may need to download a newer version of Python otherwise.
+  - If the Python version is shown to be Python 2, you may have to run the same command with `python3` instead of `python` (e.g. `python3 --version`). If that is the case, make sure to use the `python3` commmand for all the steps below as well.
 - Navigate to your local copy of the RSS-to-Subreddit folder: `cd PATH_TO_FOLDER`
   - If you are unsure about the path, dragging the folder into the command line interface will paste the path in for you.
-- Install dependencies from requirements.txt: `python pip install -r requirements.txt`
+- Install dependencies from requirements.txt: `python -m pip install -r requirements.txt`
 - Run script: `python main.py`
-- Exit the script with Ctrl-C (Note: Reddit posts will stop being made by the script)
+- Exit the script with Ctrl-C (Note: Reddit posts will stop being made by the script if you end it)
 
 # Useful Links
 - [Reddit Help](https://www.reddithelp.com/hc/en-us)
