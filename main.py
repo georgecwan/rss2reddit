@@ -1,7 +1,7 @@
 from datetime import datetime
 import math
 import json
-import pause
+from pause import until
 from pprint import pprint
 import praw
 import requests
@@ -145,8 +145,9 @@ class RedditBot:
             print("Updating db.json...")
             self.update_db('db.json')
             # Wait until next update
-            print(f"Next update at {datetime.fromtimestamp(next_update)}")
-            pause.until(next_update)
+            t = datetime.fromtimestamp(next_update).strftime('%Y-%m-%d %H:%M')
+            print(f"Next update at {t}")
+            until(next_update)
 
 
 if __name__ == "__main__":

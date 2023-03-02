@@ -6,7 +6,6 @@ docopt==0.6.2
 idna==3.4
 lxml==4.9.2
 packaging==23.0
-pause==0.3
 pip-upgrader==1.4.15
 praw==7.7.0
 prawcore==2.3.0
