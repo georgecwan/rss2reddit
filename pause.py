@@ -22,13 +22,13 @@ def until(timestamp):
         if diff <= 0:
             break
         else:
-            # 'logarithmic' sleeping to minimize loop iterations
-            if diff > 300:
-                t = time.strftime('%Y-%m-%d %H:%M')
-                if diff > 7200:
-                    print(f'[{t}] Sleeping for {round(diff/7200, 2)} hours...')
-                elif diff > 120:
-                    print(f'[{t}] Sleeping for {round(diff/120, 2)} minutes...')
-                else:
-                    print(f'[{t}] Sleeping for {round(diff/2, 2)} seconds...')
-            time.sleep(diff / 2)
+            t = time.strftime('%Y-%m-%d %H:%M')
+            if diff > 7200:     # >2 hours left
+                print(f'[{t}] Sleeping for 1 hour...')
+                time.sleep(3600)
+            elif diff > 300:    # >5 minutes left
+                print(f'[{t}] Sleeping for {round(diff / 120, 2)} minutes...')
+                time.sleep(diff / 2)
+            else:               # <5 seconds left
+                print(f'[{t}] Sleeping for {round(diff, 2)} seconds...')
+                time.sleep(diff)
