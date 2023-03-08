@@ -103,9 +103,12 @@ RSS url to generate posts from.
   - If the Python version is shown to be Python 2, you may have to run the same command with `python3` instead of `python` (e.g. `python3 --version`). If that is the case, make sure to use the `python3` commmand for all the steps below as well.
 - Navigate to your local copy of the RSS-to-Subreddit folder: `cd PATH_TO_FOLDER`
   - If you are unsure about the path, dragging the folder into the command line interface will paste the path in for you.
+- **Optional but recommended:** Create a virtual environment: `python -m venv venv`
+  - Activate the virtual environment: `venv\Scripts\activate.bat` (Windows) or `source venv/bin/activate` (Mac/Linux)
 - Install dependencies from requirements.txt: `python -m pip install -r requirements.txt`
 - Run script: `python main.py`
 - Exit the script with Ctrl-C (Note: Reddit posts will stop being made by the script if you end it)
+- If you created a virtual environment, you can deactivate it with `deactivate`
 
 # Useful Links
 - [Reddit Help](https://www.reddithelp.com/hc/en-us)
