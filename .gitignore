@@ -1,6 +1,9 @@
+# Local data
+db.json
+config.json
+
 # Pycharm folder
 .idea
-db.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

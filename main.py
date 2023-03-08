@@ -59,11 +59,14 @@ class RedditBot:
                 'If-Modified-Since': self.db[key]["Last_Modified"],
                 'If-None-Match': self.db[key]["ETag"]
             })
+            print(resp.status_code)
             if resp.status_code == 200:
                 self.db[key]["Last_Modified"] = resp.headers['Last-Modified'] if 'Last-Modified' in resp.headers else None
+                print(self.db[key]["ETag"])
+                print(resp.headers['ETag'])
                 self.db[key]["ETag"] = resp.headers['ETag'] if 'ETag' in resp.headers else None
                 return resp.text
-            elif resp.status_code == 304:
+            else:
                 return None
         except Exception as e:
             print(f'Error requesting {url}: {str(e)}')
