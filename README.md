@@ -104,7 +104,9 @@ RSS url to generate posts from.
 - Navigate to your local copy of the RSS-to-Subreddit folder: `cd PATH_TO_FOLDER`
   - If you are unsure about the path, dragging the folder into the command line interface will paste the path in for you.
 - **Optional but recommended:** Create a virtual environment: `python -m venv venv`
-  - Activate the virtual environment: `venv\Scripts\activate.bat` (Windows) or `source venv/bin/activate` (Mac/Linux)
+  - Activate the virtual environment: `venv\Scripts\activate.bat` (Windows CMD) or `source venv/bin/activate` (Mac/Linux)
+  - It should say (venv) at the beginning of the command line prompt if the virtual environment is active.
+  - If you encounter errors trying to create the virtual environment, you can find links to helpful tutorials in the [Useful Links](#useful-links) section.
 - Install dependencies from requirements.txt: `python -m pip install -r requirements.txt`
 - Run script: `python main.py`
 - Exit the script with Ctrl-C (Note: Reddit posts will stop being made by the script if you end it)
@@ -113,3 +115,4 @@ RSS url to generate posts from.
 # Useful Links
 - [Reddit Help](https://www.reddithelp.com/hc/en-us)
 - [Reddit Bottiquette](https://www.reddit.com/wiki/bottiquette/)
+- [Python Virtual Environments Primer](https://realpython.com/python-virtual-environments-a-primer/#how-can-you-work-with-a-python-virtual-environment)
