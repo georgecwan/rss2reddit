@@ -13,5 +13,5 @@ requests==2.28.2
 soupsieve==2.4
 terminaltables==3.1.10
 update-checker==0.18.0
-urllib3==1.26.14
+urllib3==1.26.15
 websocket-client==1.5.1
