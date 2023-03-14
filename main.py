@@ -106,38 +106,42 @@ class RedditBot:
             for sub_info in self.sub_list:
                 print(f"Checking r/{sub_info['subreddit_name']} with {sub_info['rss_url']}...")
                 key = sub_info['subreddit_name'] + sub_info['rss_url']
+                # New entry
                 if key not in self.db:
-                    self.db[key] = {'Last_Modified': None, 'ETag': None}
+                    self.db[key] = {'Last_Modified': None, 'ETag': None, 'Listening': True}
                     response_text = self.rss_request(sub_info['rss_url'], key)
-                    title, link, guid = find_newest_headline(response_text)
-                    print("New story found! Making reddit post...")
-                    self.post_to_subreddit(sub_info['subreddit_name'], title, link,
-                                           sub_info['flair'] if 'flair' in sub_info else None)
-                    new_update = math.ceil(time.time()) + sub_info['delay']
-                    self.db[key].update({'Last_Id': guid, 'Update_Time': new_update})
+                    print(f"Listening to {sub_info['rss_url']} for r/{sub_info['subreddit_name']}...")
+                    new_update = math.ceil(time.time()) + 1800   # Check 30 minutes later
+                    self.db[key].update({'Last_Id': find_newest_headline(response_text)[2], 'Update_Time': new_update})
                     if new_update < next_update:
                         next_update = new_update
+                # Update time has passed
                 elif self.db[key]['Update_Time'] <= math.ceil(time.time()):
                     response_text = self.rss_request(sub_info['rss_url'], key)
                     if not response_text:
                         print("No new data from RSS feed")
-                        new_update = int(time.time()) + 3600
+                        new_update = int(time.time()) + 1800    # Check 30 minutes later
                         next_update = new_update if new_update < next_update else next_update
-                        self.db[key]['Update_Time'] = new_update
+                        self.db[key].update({'Update_Time': new_update, 'Listening': True})
                         continue
                     title, link, guid = find_newest_headline(response_text)
                     if self.db[key]['Last_Id'] == guid:
                         print("No new stories since last check")
-                        new_update = int(time.time()) + 3600
-                        self.db[key]['Update_Time'] = new_update
-                    else:
+                        new_update = int(time.time()) + 1800    # Check 30 minutes later
+                        self.db[key].update({'Update_Time': new_update, 'Listening': True})
+                    elif self.db[key]['Listening']:
                         print("New story found! Making reddit post...")
                         self.post_to_subreddit(sub_info['subreddit_name'], title, link,
                                                sub_info['flair'] if 'flair' in sub_info else None)
                         new_update = int(time.time()) + sub_info['delay']
-                        self.db[key].update({'Last_Id': guid, 'Update_Time': new_update})
+                        self.db[key].update({'Last_Id': guid, 'Update_Time': new_update, 'Listening': False})
+                    else:   # Not Listening
+                        print(f"Listening to {sub_info['rss_url']} for r/{sub_info['subreddit_name']}...")
+                        new_update = int(time.time()) + 1800    # Check 30 minutes later
+                        self.db[key].update({'Last_Id': guid, 'Update_Time': new_update, 'Listening': True})
                     if new_update < next_update:
                         next_update = new_update
+                # Update time has not passed
                 else:
                     if self.db[key]['Update_Time'] < next_update:
                         next_update = self.db[key]['Update_Time']
