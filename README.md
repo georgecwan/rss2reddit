@@ -55,7 +55,8 @@ and client secret (beside the text "secret").
 - Fill in the "subreddits" section with a list of all the subreddits and the corresponding
 RSS url to generate posts from.
 - The delay parameter should be a positive integer representing how many seconds the program waits before 
-  checking the RSS feed for updates. This is the only paramater that does not have quotation marks around it.
+  listening to RSS feed for updates. Any new links posted to the rss feed during the delay period will be ignored. 
+  This is the only parameter that does not have quotation marks around it.
   - The flair parameter is optional. If you want to add flair to your posts, enter the text you want to use as flair.
   Otherwise, do not include the flair parameter in your config file. 
     - Format for one subreddit (no flairs):
@@ -109,6 +110,7 @@ RSS url to generate posts from.
   - If you encounter errors trying to create the virtual environment, you can find links to helpful tutorials in the [Useful Links](#useful-links) section.
 - Install dependencies from requirements.txt: `python -m pip install -r requirements.txt`
 - Run script: `python main.py`
+  - Note that the script will only post links that are added to the RSS feed *after* the script is started.
 - Exit the script with Ctrl-C (Note: Reddit posts will stop being made by the script if you end it)
 - If you created a virtual environment, you can deactivate it with `deactivate`
 
