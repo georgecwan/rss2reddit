@@ -1,0 +1,9 @@
+services:
+  rss_to_subreddit:
+    image: rss-to-subreddit
+    container_name: rss_to_subreddit
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./db:/app/db
