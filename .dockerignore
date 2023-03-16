@@ -1,0 +1,6 @@
+.github
+.obsidian
+__pycache__
+venv
+db
+README.md
