@@ -1,4 +1,5 @@
 from datetime import datetime
+import argparse
 import math
 import yaml
 import json
@@ -10,7 +11,6 @@ import time
 from RSSParser import find_newest_headline
 
 
-TESTING = False
 
 def load_config(config_file):
     # Loads the config file
@@ -39,7 +39,10 @@ class RedditBot:
     user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) " \
                  "Chrome/108.0.0.0 Safari/537.36 OPR/94.0.0.0"
 
-    def __init__(self):
+    def __init__(self, testing):
+        # Sets testing mode
+        self.testing = testing
+        print(f"Testing Mode: {self.testing}")
         # Initializes db dictionary, sets self.db
         self.db = load_db('db/db.json')
         # Loads config file, sets self.credentials and self.sub_list
@@ -71,7 +74,8 @@ class RedditBot:
         except Exception as e:
             print(f'Error requesting {url}: {str(e)}')
 
-    def subreddits_loop(self, next_update):
+    def subreddits_loop(self):
+        next_update = math.inf      # next_update is the time in seconds until the next update
         for sub_info in self.sub_list:
             print(f"Checking r/{sub_info['subreddit_name']} with {sub_info['rss_url']}...")
             key = sub_info['subreddit_name'] + sub_info['rss_url']
@@ -125,7 +129,7 @@ class RedditBot:
                 flair_choices = list(subreddit.flair.link_templates.user_selectable())
                 for flair in flair_choices:
                     if flair["flair_text"] == flair_text:
-                        if not TESTING:
+                        if not self.testing:
                             subreddit.submit(title=title, url=link, resubmit=False,
                                              flair_id=flair["flair_template_id"])
                         print(f"Posted to {sub_name} with preset flair {flair_text}")
@@ -133,17 +137,17 @@ class RedditBot:
                 # Use editable flair if no pre-defined flair found
                 for flair in flair_choices:
                     if flair['flair_text_editable']:
-                        if not TESTING:
+                        if not self.testing:
                             subreddit.submit(title=title, url=link, resubmit=False,
                                              flair_id=flair["flair_template_id"], flair_text=flair_text)
                         print(f"Posted to {sub_name} with custom flair {flair_text}")
                         return
                 # Use default flair if no editable flair found
-                if not TESTING:
+                if not self.testing:
                     subreddit.submit(title=title, url=link, resubmit=False)
                 print(f"Posted to {sub_name}, flair_text not found")
             else:
-                if not TESTING:
+                if not self.testing:
                     subreddit.submit(title=title, url=link, resubmit=False)
                 print(f"Posted to {sub_name}")
         except Exception as e:
@@ -154,10 +158,9 @@ class RedditBot:
         while True:
             print(f"[{time.strftime('%Y-%m-%d %H:%M')}] Checking RSS feeds...")
 
-            next_update = math.inf      # next_update is the time in seconds until the next update
-            next_update = self.subreddits_loop(next_update)
+            next_update = self.subreddits_loop()
             # Update db.json
-            if not TESTING:
+            if not self.testing:
                 print("Updating db.json...")
                 update_db('db/db.json', self.db)
             # Wait until next update
@@ -167,5 +170,7 @@ class RedditBot:
 
 
 if __name__ == "__main__":
-    bot = RedditBot()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-t", "--testing", help="Testing mode toggle", action="store_true")
+    bot = RedditBot(parser.parse_args().testing)
     bot.main_loop()
