@@ -1,5 +1,6 @@
 from datetime import datetime
 import math
+import yaml
 import json
 from pause import until
 from pprint import pprint
@@ -8,13 +9,15 @@ import requests
 import time
 from RSSParser import find_newest_headline
 
+TESTING = True
+
 
 def load_config(config_file):
     # Loads the config file
     try:
-        with open(config_file) as json_data_file:
-            config = json.load(json_data_file)
-            return config['credentials'], config['subreddits']
+        with open(config_file) as yaml_data_file:
+            config = yaml.safe_load_all(yaml_data_file)
+            return next(config), next(config)
     except Exception as e:
         print(f'Error loading {config_file}: {str(e)}')
 
@@ -38,15 +41,15 @@ class RedditBot:
         # Initializes db dictionary, sets self.db
         self.db = load_db('db.json')
         # Loads config file, sets self.credentials and self.sub_list
-        self.credentials, self.sub_list = load_config('config.json')
+        self.credentials, self.sub_list = load_config('config.yaml')
         print("Config List:", end=' ')
         pprint(self.sub_list)
         # Initializes reddit praw object
-        self.reddit = praw.Reddit(username = self.credentials['user'],
-                                password = self.credentials['password'],
-                                client_id = self.credentials['client_id'],
-                                client_secret = self.credentials['client_secret'],
-                                user_agent = "Subreddit-News:V1.0 by /u/GeoWa")
+        self.reddit = praw.Reddit(username=self.credentials['user'],
+                                  password=self.credentials['password'],
+                                  client_id=self.credentials['client_id'],
+                                  client_secret=self.credentials['client_secret'],
+                                  user_agent="Subreddit-News:V1.0 by /u/GeoWa")
 
     def update_db(self, filename):
         with open(filename, 'w') as file:
@@ -60,7 +63,8 @@ class RedditBot:
                 'If-None-Match': self.db[key]["ETag"]
             })
             if resp.status_code == 200:
-                self.db[key]["Last_Modified"] = resp.headers['Last-Modified'] if 'Last-Modified' in resp.headers else None
+                self.db[key]["Last_Modified"] = resp.headers[
+                    'Last-Modified'] if 'Last-Modified' in resp.headers else None
                 self.db[key]["ETag"] = resp.headers['ETag'] if 'ETag' in resp.headers else None
                 return resp.text
             else:
@@ -77,21 +81,26 @@ class RedditBot:
                 flair_choices = list(subreddit.flair.link_templates.user_selectable())
                 for flair in flair_choices:
                     if flair["flair_text"] == flair_text:
-                        subreddit.submit(title=title, url=link, resubmit=False, flair_id=flair["flair_template_id"])
+                        if not TESTING:
+                            subreddit.submit(title=title, url=link, resubmit=False,
+                                             flair_id=flair["flair_template_id"])
                         print(f"Posted to {sub_name} with preset flair {flair_text}")
                         return
                 # Use editable flair if no pre-defined flair found
                 for flair in flair_choices:
                     if flair['flair_text_editable']:
-                        subreddit.submit(title=title, url=link, resubmit=False,
-                                        flair_id=flair["flair_template_id"], flair_text=flair_text)
+                        if not TESTING:
+                            subreddit.submit(title=title, url=link, resubmit=False,
+                                             flair_id=flair["flair_template_id"], flair_text=flair_text)
                         print(f"Posted to {sub_name} with custom flair {flair_text}")
                         return
                 # Use default flair if no editable flair found
-                subreddit.submit(title=title, url=link, resubmit=False)
+                if not TESTING:
+                    subreddit.submit(title=title, url=link, resubmit=False)
                 print(f"Posted to {sub_name}, flair_text not found")
             else:
-                subreddit.submit(title=title, url=link, resubmit=False)
+                if not TESTING:
+                    subreddit.submit(title=title, url=link, resubmit=False)
                 print(f"Posted to {sub_name}")
         except Exception as e:
             print(f'Error posting to {sub_name}: {str(e)}')
@@ -111,7 +120,7 @@ class RedditBot:
                     self.db[key] = {'Last_Modified': None, 'ETag': None, 'Listening': True}
                     response_text = self.rss_request(sub_info['rss_url'], key)
                     print(f"Listening to {sub_info['rss_url']} for r/{sub_info['subreddit_name']}...")
-                    new_update = math.ceil(time.time()) + 1800   # Check 30 minutes later
+                    new_update = math.ceil(time.time()) + 1800  # Check 30 minutes later
                     self.db[key].update({'Last_Id': find_newest_headline(response_text)[2], 'Update_Time': new_update})
                     if new_update < next_update:
                         next_update = new_update
@@ -119,15 +128,15 @@ class RedditBot:
                 elif self.db[key]['Update_Time'] <= math.ceil(time.time()):
                     response_text = self.rss_request(sub_info['rss_url'], key)
                     if not response_text:
-                        print("No new data from RSS feed")
-                        new_update = int(time.time()) + 1800    # Check 30 minutes later
+                        print("No new data from RSS feed, continuing to listen")
+                        new_update = int(time.time()) + 1800  # Check 30 minutes later
                         next_update = new_update if new_update < next_update else next_update
                         self.db[key].update({'Update_Time': new_update, 'Listening': True})
                         continue
                     title, link, guid = find_newest_headline(response_text)
                     if self.db[key]['Last_Id'] == guid:
-                        print("No new stories since last check")
-                        new_update = int(time.time()) + 1800    # Check 30 minutes later
+                        print("No new stories since last check, continuing to listen")
+                        new_update = int(time.time()) + 1800  # Check 30 minutes later
                         self.db[key].update({'Update_Time': new_update, 'Listening': True})
                     elif self.db[key]['Listening']:
                         print("New story found! Making reddit post...")
@@ -135,9 +144,9 @@ class RedditBot:
                                                sub_info['flair'] if 'flair' in sub_info else None)
                         new_update = int(time.time()) + sub_info['delay']
                         self.db[key].update({'Last_Id': guid, 'Update_Time': new_update, 'Listening': False})
-                    else:   # Not Listening
-                        print(f"Listening to {sub_info['rss_url']} for r/{sub_info['subreddit_name']}...")
-                        new_update = int(time.time()) + 1800    # Check 30 minutes later
+                    else:  # Not Listening
+                        print(f"Began listening")
+                        new_update = int(time.time()) + 1800  # Check 30 minutes later
                         self.db[key].update({'Last_Id': guid, 'Update_Time': new_update, 'Listening': True})
                     if new_update < next_update:
                         next_update = new_update
@@ -146,8 +155,9 @@ class RedditBot:
                     if self.db[key]['Update_Time'] < next_update:
                         next_update = self.db[key]['Update_Time']
             # Update db.json
-            print("Updating db.json...")
-            self.update_db('db.json')
+            if not TESTING:
+                print("Updating db.json...")
+                self.update_db('db.json')
             # Wait until next update
             t = datetime.fromtimestamp(next_update).strftime('%Y-%m-%d %H:%M')
             print(f"Next update at {t}")
