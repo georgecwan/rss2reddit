@@ -5,5 +5,7 @@ services:
     working_dir: /app
     stdin_open: true
     tty: true
+#    environment:
+#      - TZ=TZ_database_name
     volumes:
       - ./db:/app/db

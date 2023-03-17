@@ -1,7 +1,6 @@
 # Local data
-db/db.json
+db
 config.yaml
-.obsidian
 
 # Pycharm folder
 .idea
