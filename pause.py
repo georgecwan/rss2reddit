@@ -29,6 +29,6 @@ def until(timestamp):
             elif diff > 300:    # >5 minutes left
                 print(f'[{t}] Sleeping for {round(diff / 120, 2)} minutes...')
                 time.sleep(diff / 2)
-            else:               # <5 seconds left
+            else:               # <5 minutes left
                 print(f'[{t}] Sleeping for {round(diff, 2)} seconds...')
                 time.sleep(diff)
