@@ -82,12 +82,13 @@ class RedditBot:
             # New entry
             if key not in self.db:
                 self.db[key] = {'Last_Modified': None, 'ETag': None, 'Listening': True}
-                response_text = self.rss_request(sub_info['rss_url'], key)
                 print(f"Listening to {sub_info['rss_url']} for r/{sub_info['subreddit_name']}...")
-                new_update = math.ceil(time.time()) + 1800  # Check 30 minutes later
-                self.db[key].update({'Last_Id': find_newest_headline(response_text)[2], 'Update_Time': new_update})
-                if new_update < next_update:
-                    next_update = new_update
+                response_text = self.rss_request(sub_info['rss_url'], key)
+                if response_text:
+                    new_update = math.ceil(time.time()) + 1800  # Check 30 minutes later
+                    self.db[key].update({'Last_Id': find_newest_headline(response_text)[2], 'Update_Time': new_update})
+                    if new_update < next_update:
+                        next_update = new_update
             # Update time has passed
             elif self.db[key]['Update_Time'] <= math.ceil(time.time()):
                 response_text = self.rss_request(sub_info['rss_url'], key)
@@ -156,7 +157,7 @@ class RedditBot:
     # Main Program Loop
     def main_loop(self):
         while True:
-            print(f"[{time.strftime('%Y-%m-%d %H:%M')}] Checking RSS feeds...")
+            print(f"\n[{time.strftime('%Y-%m-%d %H:%M')}] Checking RSS feeds...")
 
             next_update = self.subreddits_loop()
             # Update db.json
