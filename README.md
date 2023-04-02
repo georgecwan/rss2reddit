@@ -56,6 +56,7 @@ client_secret: client_secret
 - Fill in the "Subreddits" section with a list of all the subreddits and the corresponding
   RSS url to generate posts from.
   - You may add/remove as many subreddits as you want as long as they follow the format in the template above.
+  - Do not add duplicate entries with the same pairing of subreddit and RSS url.
 - The delay parameter should be a positive integer representing how many seconds the program waits before 
   listening to RSS feed for updates.
   - The flair parameter is optional. If you want to add a flair to your posts, enter the text you want to use as flair.
@@ -63,7 +64,7 @@ client_secret: client_secret
 - Make sure that the config.yaml file is indented correctly. The indentation should be 2 spaces for each level.
   The program will not be able to read the config file if the indentation is incorrect.
 
-**KEEP YOUR OWN CONFIG.YAML PRIVATE. DO NOT SHARE WITH ANYONE ELSE.**
+**KEEP THE CREDENTIALS IN CONFIG.YAML PRIVATE. DO NOT SHARE WITH ANYONE ELSE.**
 
 # Running the Script
 You can run the script using either a Python virtual environment or a Docker container.

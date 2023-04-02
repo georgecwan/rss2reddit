@@ -3,14 +3,14 @@ import argparse
 import math
 import yaml
 import json
-from pause import until
-from pprint import pprint
 import praw
 import requests
 import time
-from RSSParser import find_newest_headline
+from pprint import pprint
 
-
+from rssparser import find_newest_headline
+from notif import send_discord_notification
+from pause import until
 
 def load_config(config_file):
     # Loads the config file
@@ -20,6 +20,7 @@ def load_config(config_file):
             return next(config), next(config)
     except Exception as e:
         print(f'Error loading {config_file}: {str(e)}')
+
 
 def load_db(filename):
     # Loads the database file
@@ -31,9 +32,11 @@ def load_db(filename):
         print(f'Creating empty db...')
         return {}
 
+
 def update_db(filename, db):
     with open(filename, 'w') as file:
         json.dump(db, file, indent=4)
+
 
 class RedditBot:
     user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) " \
@@ -42,7 +45,7 @@ class RedditBot:
     def __init__(self, testing):
         # Sets testing mode
         self.testing = testing
-        print(f"Testing Mode: {self.testing}")
+        print(f"Testing Mode: {'ON' if self.testing else 'OFF'}")
         # Initializes db dictionary, sets self.db
         self.db = load_db('db/db.json')
         # Loads config file, sets self.credentials and self.sub_list
@@ -55,7 +58,8 @@ class RedditBot:
                                   client_id=self.credentials['client_id'],
                                   client_secret=self.credentials['client_secret'],
                                   user_agent="Subreddit-News:V1.0 by /u/GeoWa")
-
+        # Sends Discord Notification
+        send_discord_notification(f"Bot Started on {'Testing Mode' if self.testing else 'Normal Mode'}")
 
     def rss_request(self, url, key):
         try:
@@ -75,7 +79,7 @@ class RedditBot:
             print(f'Error requesting {url}: {str(e)}')
 
     def subreddits_loop(self):
-        next_update = math.inf      # next_update is the time in seconds until the next update
+        next_update = math.inf  # next_update is the time in seconds until the next update
         for sub_info in self.sub_list:
             print(f"Checking r/{sub_info['subreddit_name']} with {sub_info['rss_url']}...")
             key = sub_info['subreddit_name'] + sub_info['rss_url']
@@ -87,18 +91,20 @@ class RedditBot:
                 if response_text:
                     new_update = math.ceil(time.time()) + 1800  # Check 30 minutes later
                     self.db[key].update({'Last_Id': find_newest_headline(response_text)[2], 'Update_Time': new_update})
-                    if new_update < next_update:
-                        next_update = new_update
+                    next_update = min(new_update, next_update)
             # Update time has passed
             elif self.db[key]['Update_Time'] <= math.ceil(time.time()):
                 response_text = self.rss_request(sub_info['rss_url'], key)
                 if not response_text:
                     print("No new data from RSS feed, continuing to listen")
                     new_update = int(time.time()) + 1800  # Check 30 minutes later
-                    next_update = new_update if new_update < next_update else next_update
+                    next_update = min(new_update, next_update)
                     self.db[key].update({'Update_Time': new_update, 'Listening': True})
                     continue
                 title, link, guid = find_newest_headline(response_text)
+                # Check for errors from RSSParser.py
+                if not title:
+                    continue
                 if self.db[key]['Last_Id'] == guid:
                     print("No new stories since last check, continuing to listen")
                     new_update = int(time.time()) + 1800  # Check 30 minutes later
@@ -113,52 +119,57 @@ class RedditBot:
                     print(f"Began listening")
                     new_update = int(time.time()) + 1800  # Check 30 minutes later
                     self.db[key].update({'Last_Id': guid, 'Update_Time': new_update, 'Listening': True})
-                if new_update < next_update:
-                    next_update = new_update
+                next_update = min(new_update, next_update)
             # Update time has not passed
             else:
-                if self.db[key]['Update_Time'] < next_update:
-                    next_update = self.db[key]['Update_Time']
+                next_update = min(self.db[key]['Update_Time'], next_update)
         return next_update
 
     def post_to_subreddit(self, sub_name, title, link, flair_text=None):
+        def post_with_flair():
+            # Find flair_id
+            flair_choices = list(subreddit.flair.link_templates.user_selectable())
+            for flair in flair_choices:
+                if flair["flair_text"] == flair_text:
+                    if not self.testing:
+                        subreddit.submit(title=title, url=link, resubmit=False,
+                                         flair_id=flair["flair_template_id"])
+                    send_discord_notification(f"Posted {link} to {sub_name}")
+                    print(f"Posted to {sub_name} with preset flair {flair_text}")
+                    return
+            # Use editable flair if no pre-defined flair found
+            for flair in flair_choices:
+                if flair['flair_text_editable']:
+                    if not self.testing:
+                        subreddit.submit(title=title, url=link, resubmit=False,
+                                         flair_id=flair["flair_template_id"], flair_text=flair_text)
+                    send_discord_notification(f"Posted {link} to {sub_name}")
+                    print(f"Posted to {sub_name} with custom flair {flair_text}")
+                    return
+            # Use default flair if no editable flair found
+            if not self.testing:
+                subreddit.submit(title=title, url=link, resubmit=False)
+            send_discord_notification(f"Posted {link} to {sub_name}")
+            print(f"Posted to {sub_name}, flair_text not found")
+
         # Posts to subreddit
         try:
             subreddit = self.reddit.subreddit(sub_name)
             if flair_text:
-                # Find flair_id
-                flair_choices = list(subreddit.flair.link_templates.user_selectable())
-                for flair in flair_choices:
-                    if flair["flair_text"] == flair_text:
-                        if not self.testing:
-                            subreddit.submit(title=title, url=link, resubmit=False,
-                                             flair_id=flair["flair_template_id"])
-                        print(f"Posted to {sub_name} with preset flair {flair_text}")
-                        return
-                # Use editable flair if no pre-defined flair found
-                for flair in flair_choices:
-                    if flair['flair_text_editable']:
-                        if not self.testing:
-                            subreddit.submit(title=title, url=link, resubmit=False,
-                                             flair_id=flair["flair_template_id"], flair_text=flair_text)
-                        print(f"Posted to {sub_name} with custom flair {flair_text}")
-                        return
-                # Use default flair if no editable flair found
-                if not self.testing:
-                    subreddit.submit(title=title, url=link, resubmit=False)
-                print(f"Posted to {sub_name}, flair_text not found")
+                post_with_flair()
             else:
+                # Post without flair
                 if not self.testing:
                     subreddit.submit(title=title, url=link, resubmit=False)
+                send_discord_notification(f"Posted {link} to {sub_name}")
                 print(f"Posted to {sub_name}")
         except Exception as e:
             print(f'Error posting to {sub_name}: {str(e)}')
 
     # Main Program Loop
-    def main_loop(self):
+    def run(self):
         while True:
             print(f"\n[{time.strftime('%Y-%m-%d %H:%M')}] Checking RSS feeds...")
-
             next_update = self.subreddits_loop()
             # Update db.json
             if not self.testing:
@@ -174,4 +185,4 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--testing", help="Testing mode toggle", action="store_true")
     bot = RedditBot(parser.parse_args().testing)
-    bot.main_loop()
+    bot.run()
