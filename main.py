@@ -1,45 +1,19 @@
 from datetime import datetime
 import argparse
 import math
-import yaml
-import json
 import praw
 import requests
 import time
 from pprint import pprint
 
-from rssparser import find_newest_headline
+from file_manager import load_config, load_db, update_db
+from rss_parser import find_newest_headline
 from notif import send_discord_notification
 from pause import until
 
-def load_config(config_file):
-    # Loads the config file
-    try:
-        with open(config_file) as yaml_data_file:
-            config = yaml.safe_load_all(yaml_data_file)
-            return next(config), next(config)
-    except Exception as e:
-        print(f'Error loading {config_file}: {str(e)}')
-
-
-def load_db(filename):
-    # Loads the database file
-    try:
-        with open(filename) as file:
-            return json.load(file)
-    except Exception as e:
-        print(f'Error loading {filename}: {str(e)}')
-        print(f'Creating empty db...')
-        return {}
-
-
-def update_db(filename, db):
-    with open(filename, 'w') as file:
-        json.dump(db, file, indent=4)
-
 
 class RedditBot:
-    user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) " \
+    USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) " \
                  "Chrome/108.0.0.0 Safari/537.36 OPR/94.0.0.0"
 
     def __init__(self, testing):
@@ -64,7 +38,7 @@ class RedditBot:
     def rss_request(self, url, key):
         try:
             resp = requests.get(url, headers={
-                'User-Agent': self.user_agent,
+                'User-Agent': self.USER_AGENT,
                 'If-Modified-Since': self.db[key]["Last_Modified"],
                 'If-None-Match': self.db[key]["ETag"]
             })
@@ -134,7 +108,7 @@ class RedditBot:
                     if not self.testing:
                         subreddit.submit(title=title, url=link, resubmit=False,
                                          flair_id=flair["flair_template_id"])
-                    send_discord_notification(f"Posted {link} to {sub_name}")
+                    send_discord_notification(f"Posted {link} to r/{sub_name}")
                     print(f"Posted to {sub_name} with preset flair {flair_text}")
                     return
             # Use editable flair if no pre-defined flair found
@@ -143,13 +117,13 @@ class RedditBot:
                     if not self.testing:
                         subreddit.submit(title=title, url=link, resubmit=False,
                                          flair_id=flair["flair_template_id"], flair_text=flair_text)
-                    send_discord_notification(f"Posted {link} to {sub_name}")
+                    send_discord_notification(f"Posted {link} to r/{sub_name}")
                     print(f"Posted to {sub_name} with custom flair {flair_text}")
                     return
             # Use default flair if no editable flair found
             if not self.testing:
                 subreddit.submit(title=title, url=link, resubmit=False)
-            send_discord_notification(f"Posted {link} to {sub_name}")
+            send_discord_notification(f"Posted {link} to r/{sub_name}")
             print(f"Posted to {sub_name}, flair_text not found")
 
         # Posts to subreddit
@@ -161,7 +135,7 @@ class RedditBot:
                 # Post without flair
                 if not self.testing:
                     subreddit.submit(title=title, url=link, resubmit=False)
-                send_discord_notification(f"Posted {link} to {sub_name}")
+                send_discord_notification(f"Posted {link} to r/{sub_name}")
                 print(f"Posted to {sub_name}")
         except Exception as e:
             print(f'Error posting to {sub_name}: {str(e)}')
