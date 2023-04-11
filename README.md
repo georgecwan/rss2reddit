@@ -16,7 +16,7 @@ Note: You should only use this on subreddits that you moderate. Make sure you do
 
 - [Setup Steps](#setup-steps)
     - [Register app on Reddit](#register-app-on-reddit)
-    - [Setting up Config.yaml](#updating-configyaml)
+    - [Setting up Config.yaml](#setting-up-configyaml)
 - [Running the Script](#running-the-script)
     - [Option 1: Python Virtual Environment](#option-1-locally-installed-python)
     - [Option 2: Docker Container](#option-2-docker-container)
@@ -40,7 +40,7 @@ Download this repository as a zip file and unzip it on your own computer.
 - Copy down the client id (found under the text "Personal Use Script"
   and client secret (beside the text "secret").
 
-### Updating Config.yaml
+### Setting Up Config.yaml
 
 #### Config.yaml Format
 
@@ -125,18 +125,12 @@ to [Step 2](#step-2-start-the-script).
 
 ## Option 2: Docker Container
 
-### Step 1: Build the Docker Image
+### Step 1: Installing Docker
 
 This step only needs to be completed **_once_** after download. If you have completed this step before, skip
 to [Step 2](#step-2-start-the-docker-container).
 
 - Install Docker [here](https://docs.docker.com/get-docker/)
-- Open your command-line app (e.g. Powershell, Terminal, etc.)
-- Navigate to your local copy of the rss-to-subreddit folder: `cd PATH_TO_FOLDER`
-    - If you are unsure about the path, dragging the folder into the command line interface might paste the path in for
-      you. On some platforms, you can also right-click the folder and select "Copy as path".
-- Build the Docker image: `docker build -t rss-to-subreddit .`
-    - This step can be skipped if the config file hasn't been changed since the last time this command was run.
 - *Optional:* When you run the Docker container, it will use UTC time by default. If you want the program to
   display your own timezone, follow the steps below:
     - Look up your timezone's TZ database name
@@ -148,7 +142,10 @@ to [Step 2](#step-2-start-the-docker-container).
 
 ### Step 2: Start the Docker Container
 
-- If you haven't already, navigate to your local copy of the rss-to-subreddit folder: `cd PATH_TO_FOLDER`
+- Open your command-line app (e.g. Powershell, Terminal, etc.)
+- Navigate to your local copy of the rss-to-subreddit folder: `cd PATH_TO_FOLDER`
+    - If you are unsure about the path, dragging the folder into the command line interface might paste the path in for
+      you. On some platforms, you can also right-click the folder and select "Copy as path".
 - Run the Docker container using Docker Compose: `docker compose up -d`
   - If you have made changes to config.yaml since the last time you built the Docker image, you will have to
     run `docker compose up -d --build` to rebuild the image. Otherwise, the script will use the old config file.
