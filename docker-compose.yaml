@@ -1,7 +1,11 @@
+name: rss_to_subreddit
 services:
   rss_to_subreddit:
-    container_name: rss_to_subreddit
+    container_name: rss-script
     image: rss-to-subreddit
+    build:
+      context: .
+      dockerfile: Dockerfile
     working_dir: /app
     stdin_open: true
     tty: true
@@ -9,3 +13,11 @@ services:
 #      - TZ=TZ_database_name
     volumes:
       - ./db:/app/db
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 100M
+        reservations:
+          cpus: '0.10'
+          memory: 20M
