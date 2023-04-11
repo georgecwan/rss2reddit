@@ -1,15 +1,16 @@
 from datetime import datetime
 import argparse
 import math
+import time
+
 import praw
 import requests
-import time
 from pprint import pprint
 
 from file_manager import load_config, load_db, update_db
-from rss_parser import find_newest_headline
-from notif import send_discord_notification
+from notif import send_discord_message
 from pause import until
+from rss_parser import find_newest_headline
 
 
 class RedditBot:
@@ -27,21 +28,17 @@ class RedditBot:
         print("Config List:", end=' ')
         pprint(self.sub_list)
         # Initializes reddit praw object
-        self.reddit = praw.Reddit(username=self.credentials['user'],
-                                  password=self.credentials['password'],
+        self.reddit = praw.Reddit(username=self.credentials['user'], password=self.credentials['password'],
                                   client_id=self.credentials['client_id'],
                                   client_secret=self.credentials['client_secret'],
                                   user_agent="Subreddit-News:V1.0 by /u/GeoWa")
         # Sends Discord Notification
-        send_discord_notification(f"Bot Started on {'Testing Mode' if self.testing else 'Normal Mode'}")
+        send_discord_message(f"Bot Started on {'Testing Mode' if self.testing else 'Normal Mode'}")
 
     def rss_request(self, url, key):
         try:
-            resp = requests.get(url, headers={
-                'User-Agent': self.USER_AGENT,
-                'If-Modified-Since': self.db[key]["Last_Modified"],
-                'If-None-Match': self.db[key]["ETag"]
-            })
+            resp = requests.get(url, headers={'User-Agent': self.USER_AGENT,
+                'If-Modified-Since': self.db[key]["Last_Modified"], 'If-None-Match': self.db[key]["ETag"]})
             if resp.status_code == 200:
                 self.db[key]["Last_Modified"] = resp.headers[
                     'Last-Modified'] if 'Last-Modified' in resp.headers else None
@@ -106,30 +103,29 @@ class RedditBot:
             for flair in flair_choices:
                 if flair["flair_text"] == flair_text:
                     if not self.testing:
-                        subreddit.submit(title=title, url=link, resubmit=False,
-                                         flair_id=flair["flair_template_id"])
-                    send_discord_notification(f"Posted {link} to r/{sub_name}")
+                        subreddit.submit(title=title, url=link, resubmit=False, flair_id=flair["flair_template_id"])
+                    send_discord_message(f"Posted {link} to r/{sub_name}")
                     print(f"Posted to {sub_name} with preset flair {flair_text}")
                     return
             # Use editable flair if no pre-defined flair found
             for flair in flair_choices:
                 if flair['flair_text_editable']:
                     if not self.testing:
-                        subreddit.submit(title=title, url=link, resubmit=False,
-                                         flair_id=flair["flair_template_id"], flair_text=flair_text)
-                    send_discord_notification(f"Posted {link} to r/{sub_name}")
+                        subreddit.submit(title=title, url=link, resubmit=False, flair_id=flair["flair_template_id"],
+                                         flair_text=flair_text)
+                    send_discord_message(f"Posted {link} to r/{sub_name}")
                     print(f"Posted to {sub_name} with custom flair {flair_text}")
                     return
             # Use default flair if no editable flair found
             if not self.testing:
                 subreddit.submit(title=title, url=link, resubmit=False)
-            send_discord_notification(f"Posted {link} to r/{sub_name}")
+            send_discord_message(f"Posted {link} to r/{sub_name}")
             print(f"Posted to {sub_name}, flair_text not found")
 
         def post_without_flair():
             if not self.testing:
                 subreddit.submit(title=title, url=link, resubmit=False)
-            send_discord_notification(f"Posted {link} to r/{sub_name}")
+            send_discord_message(f"Posted {link} to r/{sub_name}")
             print(f"Posted to {sub_name}")
 
         # Posts to subreddit

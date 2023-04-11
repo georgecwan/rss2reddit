@@ -1,26 +1,15 @@
-import discord
+import os
+from discordwebhook import Discord
+from dotenv import load_dotenv
+
+load_dotenv()
+webhook_url = os.getenv('DISCORD_WEBHOOK_URL')
+discord = Discord(url=webhook_url)
 
 
-TOKEN_ID = 'DISCORD_TOKEN_ID'
-CHANNEL_ID = 123456789
-
-def send_discord_notification(message):
-    intents = discord.Intents.default()
-    client = discord.Client(intents=intents)
-
-
-    @client.event
-    async def on_ready():
-        print('Logged in as {0.user}'.format(client))
-        channel = client.get_channel(CHANNEL_ID)
-        if channel is not None:
-            await channel.send(message)
-            print('Discord message sent')
-        else:
-            print(f"Error occurred while finding Discord channel")
-        await client.close()
-
-    try:
-        client.run(TOKEN_ID)
-    except Exception as e:
-        print(f"Error occurred in Discord Client: {str(e)}")
+def send_discord_message(message):
+    if webhook_url:
+        discord.post(content=message)
+        print("Sent discord notification")
+    else:
+        print("No webhook url found, skipping discord message")
