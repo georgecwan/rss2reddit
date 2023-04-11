@@ -9,8 +9,9 @@ services:
     working_dir: /app
     stdin_open: true
     tty: true
-#    environment:
-#      - TZ=TZ_database_name
+    environment:
+      - TZ=
+    #  - DISCORD_WEBHOOK_URL=
     volumes:
       - ./db:/app/db
     deploy:
