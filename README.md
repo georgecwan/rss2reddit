@@ -18,8 +18,9 @@ Note: You should only use this on subreddits that you moderate. Make sure you do
     - [Register app on Reddit](#register-app-on-reddit)
     - [Setting up Config.yaml](#setting-up-configyaml)
 - [Running the Script](#running-the-script)
-    - [Option 1: Python Virtual Environment](#option-1-locally-installed-python)
-    - [Option 2: Docker Container](#option-2-docker-container)
+    - [Option 1: Local Python Installation](#option-1-local-python-installation)
+    - [Option 2: Docker Compose](#option-2-docker-compose)
+- [Setting up a Discord Webhook](#setting-up-a-discord-webhook)
 - [Useful Links](#useful-links)
 
 ## Setup Steps
@@ -79,13 +80,13 @@ client_secret: client_secret
 
 **KEEP THE CREDENTIALS IN CONFIG.YAML PRIVATE. DO NOT SHARE WITH ANYONE ELSE.**
 
-# Running the Script
+## Running the Script
 
 You can run the script using either a Python 3 environment or a Docker container.
 
-## Option 1: Locally installed Python
+### Option 1: Local Python Installation
 
-### Step 1: Install dependencies
+#### Step 1: Install Python dependencies
 
 This step only needs to be completed **_once_** after download. If you have completed this step before, skip
 to [Step 2](#step-2-start-the-script).
@@ -110,10 +111,11 @@ to [Step 2](#step-2-start-the-script).
       the [Useful Links](#useful-links) section.
 - Install dependencies from requirements.txt: `python -m pip install -r requirements.txt`
 
-### Step 2: Start the script
+#### Step 2: Start the script
 
 - If you haven't already, navigate to your local copy of the rss-to-subreddit folder: `cd PATH_TO_FOLDER`
-- If you created a virtual environment, activate it: `venv\Scripts\activate.bat` (Windows CMD) or `source venv/bin/activate` (
+- If you created a virtual environment, activate it: `venv\Scripts\activate.bat` (Windows CMD)
+  or `source venv/bin/activate` (
   Mac/Linux)
 - Run script: `python main.py` or `python3 main.py`
     - You should start to see output in the command line interface indicating that the script is running.
@@ -121,11 +123,12 @@ to [Step 2](#step-2-start-the-script).
       running in the background, you will have to find external resources on how to do so.
 - Stop the script with Ctrl-C
 - If you created a virtual environment, you can deactivate it with `deactivate`
-- Note that the script has to be restarted to reflect any changes made to config.yaml.
+- Note that the script has to be restarted to reflect any changes made inside the folder, including changes to
+  config.yaml.
 
-## Option 2: Docker Container
+### Option 2: Docker Compose
 
-### Step 1: Installing Docker
+#### Step 1: Installing Docker
 
 This step only needs to be completed **_once_** after download. If you have completed this step before, skip
 to [Step 2](#step-2-start-the-docker-container).
@@ -136,25 +139,59 @@ to [Step 2](#step-2-start-the-docker-container).
     - Look up your timezone's TZ database name
       [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
     - Open docker-compose.yaml in a text editor of your choice
-    - Delete the two `#` symbols to uncomment the lines
-    - Replace the `TZ_database_name` field with your own timezone's TZ database name
-    - E.g. `- TZ: America/New_York`
+    - Enter your own timezone's TZ database name after the `TZ=`
+    - E.g. `- TZ=America/New_York`
 
-### Step 2: Start the Docker Container
+#### Step 2: Start the Docker Container
 
 - Open your command-line app (e.g. Powershell, Terminal, etc.)
 - Navigate to your local copy of the rss-to-subreddit folder: `cd PATH_TO_FOLDER`
     - If you are unsure about the path, dragging the folder into the command line interface might paste the path in for
       you. On some platforms, you can also right-click the folder and select "Copy as path".
 - Run the Docker container using Docker Compose: `docker compose up -d`
-  - If you have made changes to config.yaml since the last time you built the Docker image, you will have to
-    run `docker compose up -d --build` to rebuild the image. Otherwise, the script will use the old config file.
+    - If you have made changes to files within the folder including config.yaml since the last time you built the Docker
+      image, you will have to
+      run `docker compose up -d --build` to rebuild the image. Otherwise, the script will use the old config file.
 - If you wish to see the output of the script, run `docker logs -f rss-to-subreddit` or use Docker
-  Desktop
+  Desktop.
 - To stop the Docker container: `docker compose down` or use Docker Desktop. Note that closing the command line
   interface or Docker Desktop alone will not stop the script.
 - Note: You may have to adjust the CPU and memory constraints in Docker Desktop if the script is using too much of your
   computer's resources. The script should not use more than half a CPU core and 100MB of memory.
+
+## Setting up a Discord Webhook
+
+If you would like to receive notifications about new posts in a Discord server, you can set up a Discord webhook.
+These steps are completely optional and the script will still work without a Discord webhook.
+
+### Create a Webhook in Discord
+
+- Go to the server settings of your Discord server
+- Find the "Integrations" section and click "Webhooks"
+- Click "Create Webhook"
+- Give the webhook a name and assign it to the channel you would like to receive notifications in
+- Copy the webhook URL
+- If you are using a local Python installation, finish up by following the steps
+  to [create a .env file](#creating-a-env-file-local-python-installation-or-docker).
+- If you are using Docker, you can either [create a .env file](#creating-a-env-file-local-python-installation-or-docker)
+  or [set environment variables in docker-compose.yaml](#setting-environment-variables-in-docker-composeyaml-docker-only).
+  You do _not_ need to do both.
+
+### Creating a .env file (local Python installation or Docker)
+
+- Create a file named ".env" in your local copy of the rss-to-subreddit folder
+    - You can do this by running `touch .env` in Terminal (Mac/Linux) or by creating a new file using Notepad on Windows
+- Enter `DISCORD_WEBHOOK_URL=` followed by the webhook URL you copied from Discord and save the file
+- Redo the steps from [starting the script](#step-2-start-the-script). When the script starts running, you should
+  receive a notification in the Discord channel you specified.
+
+### Setting environment variables in docker-compose.yaml (Docker only)
+
+- Open docker-compose.yaml in a text editor of your choice
+- Delete the `#` symbol to uncomment the line `DISCORD_WEBHOOK_URL=`
+- Paste the webhook URL you copied from Discord after the `=`
+- Redo the steps from [starting the Docker container](#step-2-start-the-docker-container). After the container restarts,
+  you should receive a notification in the Discord channel you specified.
 
 # Useful Links
 

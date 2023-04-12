@@ -9,7 +9,10 @@ discord = Discord(url=webhook_url)
 
 def send_discord_message(message):
     if webhook_url:
-        discord.post(content=message)
-        print("Sent discord notification")
+        try:
+            discord.post(content=message)
+            print("Sent discord notification")
+        except Exception as e:
+            print(f"Error sending discord notification: {str(e)}")
     else:
         print("No webhook url found, skipping discord message")
