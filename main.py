@@ -33,12 +33,14 @@ class RedditBot:
                                   client_secret=self.credentials['client_secret'],
                                   user_agent="Subreddit-News:V1.0 by /u/GeoWa")
         # Sends Discord Notification
-        send_discord_message(f"Bot Started on {'Testing Mode' if self.testing else 'Normal Mode'}")
+        send_discord_message(
+            f"Bot Started on {'Testing Mode' if self.testing else 'Normal Mode'} at {time.strftime('%Y-%m-%d %H:%M')}")
 
     def rss_request(self, url, key):
         try:
             resp = requests.get(url, headers={'User-Agent': self.USER_AGENT,
-                'If-Modified-Since': self.db[key]["Last_Modified"], 'If-None-Match': self.db[key]["ETag"]})
+                                              'If-Modified-Since': self.db[key]["Last_Modified"],
+                                              'If-None-Match': self.db[key]["ETag"]})
             if resp.status_code == 200:
                 self.db[key]["Last_Modified"] = resp.headers[
                     'Last-Modified'] if 'Last-Modified' in resp.headers else None
