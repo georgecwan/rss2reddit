@@ -1,6 +1,7 @@
 import json
 import yaml
 
+
 def load_config(config_file):
     # Loads the config file
     try:
@@ -18,7 +19,7 @@ def load_db(filename):
             return json.load(file)
     except Exception as e:
         print(f'Error loading {filename}: {str(e)}')
-        print(f'Creating empty db...')
+        print(f'Creating new db...')
         return {}
 
 
