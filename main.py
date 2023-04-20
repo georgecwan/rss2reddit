@@ -2,6 +2,7 @@ from datetime import datetime
 import argparse
 import math
 import time
+import sys
 
 import praw
 import requests
@@ -21,12 +22,14 @@ class RedditBot:
         # Sets testing mode
         self.testing = testing
         print(f"Testing Mode: {'ON' if self.testing else 'OFF'}")
+        # Loads config file, sets self.credentials and self.sub_list
+        self.sub_list, self.credentials = load_config('config.yaml')
+        print("Config List:")
+        pprint(self.sub_list)
+        print("")
         # Initializes db dictionary, sets self.db
         self.db = load_db('db/db.json')
-        # Loads config file, sets self.credentials and self.sub_list
-        self.credentials, self.sub_list = load_config('config.yaml')
-        print("Config List:", end=' ')
-        pprint(self.sub_list)
+        self.initialize_db()
         # Initializes reddit praw object
         self.reddit = praw.Reddit(username=self.credentials['user'], password=self.credentials['password'],
                                   client_id=self.credentials['client_id'],
@@ -36,15 +39,42 @@ class RedditBot:
         send_discord_message(
             f"Bot Started on {'Testing Mode' if self.testing else 'Normal Mode'} at {time.strftime('%Y-%m-%d %H:%M')}")
 
-    def rss_request(self, url, key):
+    def initialize_db(self):
         try:
-            resp = requests.get(url, headers={'User-Agent': self.USER_AGENT,
-                                              'If-Modified-Since': self.db[key]["Last_Modified"],
-                                              'If-None-Match': self.db[key]["ETag"]})
+            for sub_info in self.sub_list:
+                if sub_info['name'] not in self.db:
+                    self.db[sub_info['name']] = {
+                        'update_list': [{"update_time": 0, "update_index": 0, "listening": True}] * len(
+                            sub_info['rss_feeds']), 'rss_sources': {}}
+                else:
+                    db_entry = self.db[sub_info['name']]
+                    if len(db_entry['update_list']) > len(sub_info['rss_feeds']):
+                        db_entry['update_list'] = db_entry['update_list'][:len(sub_info['rss_feeds'])]
+                    for index, item in enumerate(db_entry['update_list']):
+                        item['update_time'] = min(item['update_time'],
+                                                  int(time.time()) + sub_info['rss_feeds'][index]['check_interval'])
+                        item['update_index'] = item['update_index'] if item['update_index'] < len(
+                            sub_info['rss_feeds'][index]['urls']) else 0
+                    total_urls = [url for feed in sub_info['rss_feeds'] for url in feed['urls']]
+                    new_rss_sources = {}
+                    for url in db_entry['rss_sources'].keys():
+                        if url in total_urls:
+                            new_rss_sources[url] = db_entry['rss_sources'][url]
+                    db_entry['rss_sources'] = new_rss_sources
+        except Exception as e:
+            print(f'Unable to read the db: {str(e)}')
+            print("The file might be corrupted, try deleting db.json then try again.")
+            sys.exit(1)
+
+    def rss_request(self, url, subreddit):
+        try:
+            db_entry = self.db[subreddit]['rss_sources'][url]
+            resp = requests.get(url,
+                                headers={'User-Agent': self.USER_AGENT, 'If-Modified-Since': db_entry['last_modified'],
+                                         'If-None-Match': db_entry['etag']})
             if resp.status_code == 200:
-                self.db[key]["Last_Modified"] = resp.headers[
-                    'Last-Modified'] if 'Last-Modified' in resp.headers else None
-                self.db[key]["ETag"] = resp.headers['ETag'] if 'ETag' in resp.headers else None
+                db_entry['last_modified'] = resp.headers['Last-Modified'] if 'Last-Modified' in resp.headers else None
+                db_entry['etag'] = resp.headers['ETag'] if 'ETag' in resp.headers else None
                 return resp.text
             else:
                 return None
@@ -54,48 +84,59 @@ class RedditBot:
     def subreddits_loop(self):
         next_update = math.inf  # next_update is the time in seconds until the next update
         for sub_info in self.sub_list:
-            print(f"Checking r/{sub_info['subreddit_name']} with {sub_info['rss_url']}...")
-            key = sub_info['subreddit_name'] + sub_info['rss_url']
-            # New entry
-            if key not in self.db:
-                self.db[key] = {'Last_Modified': None, 'ETag': None, 'Listening': True}
-                print(f"Listening to {sub_info['rss_url']} for r/{sub_info['subreddit_name']}...")
-                response_text = self.rss_request(sub_info['rss_url'], key)
-                if response_text:
-                    new_update = math.ceil(time.time()) + 1800  # Check 30 minutes later
-                    self.db[key].update({'Last_Id': find_newest_headline(response_text)[2], 'Update_Time': new_update})
+            print(f"Checking r/{sub_info['name']}...")
+            updates = self.db[sub_info['name']]['update_list']
+            sources = self.db[sub_info['name']]['rss_sources']
+            for index in range(len(sub_info['rss_feeds'])):
+                current_feed = sub_info['rss_feeds'][index]
+                update_entry = updates[index]
+                url = current_feed['urls'][update_entry['update_index']]
+                # New entry
+                if url not in sources:
+                    sources[url] = {'last_modified': None, 'etag': None}
+                    update_entry['listening'] = True
+                    print(f"Listening to {url}...")
+                    response_text = self.rss_request(url, sub_info['name'])
+                    if response_text:
+                        new_update = math.ceil(time.time()) + 1800  # Check 30 minutes later
+                        sources[url]['last_id'] = find_newest_headline(response_text)[2]
+                        update_entry['update_time'] = new_update
+                        next_update = min(new_update, next_update)
+                # Update time has passed
+                elif update_entry['update_time'] <= math.ceil(time.time()):
+                    response_text = self.rss_request(url, sub_info['name'])
+                    if not response_text:
+                        print(f"No new data from {url}, continuing to listen")
+                        new_update = int(time.time()) + 1800  # Check 30 minutes later
+                        next_update = min(new_update, next_update)
+                        update_entry.update({'update_time': new_update, 'listening': True})
+                        continue
+                    title, link, guid = find_newest_headline(response_text)
+                    # Check for errors from RSSParser.py
+                    if not title:
+                        continue
+                    if not update_entry['listening']:
+                        print(f"Began listening")
+                        new_update = int(time.time()) + 1800  # Check 30 minutes later
+                        sources[url]['last_id'] = guid
+                        update_entry.update({'update_time': new_update, 'listening': True})
+                    elif sources[url]['last_id'] == guid:
+                        print(f"No new stories from {url}")
+                        new_update = int(time.time()) + 1800  # Check 30 minutes later
+                        update_entry.update({'update_time': new_update})
+                    else:
+                        print("New story found! Making reddit post...")
+                        self.post_to_subreddit(sub_info['name'], title, link,
+                                               current_feed['flair'] if 'flair' in current_feed else None)
+                        new_update = int(time.time()) + current_feed['check_interval']
+                        sources[url]['last_id'] = guid
+                        update_entry.update({'update_time': new_update,
+                                             'update_index': (update_entry['update_index'] + 1) % len(
+                                                 current_feed['urls']), 'listening': False})
                     next_update = min(new_update, next_update)
-            # Update time has passed
-            elif self.db[key]['Update_Time'] <= math.ceil(time.time()):
-                response_text = self.rss_request(sub_info['rss_url'], key)
-                if not response_text:
-                    print("No new data from RSS feed, continuing to listen")
-                    new_update = int(time.time()) + 1800  # Check 30 minutes later
-                    next_update = min(new_update, next_update)
-                    self.db[key].update({'Update_Time': new_update, 'Listening': True})
-                    continue
-                title, link, guid = find_newest_headline(response_text)
-                # Check for errors from RSSParser.py
-                if not title:
-                    continue
-                if self.db[key]['Last_Id'] == guid:
-                    print("No new stories since last check, continuing to listen")
-                    new_update = int(time.time()) + 1800  # Check 30 minutes later
-                    self.db[key].update({'Update_Time': new_update, 'Listening': True})
-                elif self.db[key]['Listening']:
-                    print("New story found! Making reddit post...")
-                    self.post_to_subreddit(sub_info['subreddit_name'], title, link,
-                                           sub_info['flair'] if 'flair' in sub_info else None)
-                    new_update = int(time.time()) + sub_info['delay']
-                    self.db[key].update({'Last_Id': guid, 'Update_Time': new_update, 'Listening': False})
-                else:  # Not Listening
-                    print(f"Began listening")
-                    new_update = int(time.time()) + 1800  # Check 30 minutes later
-                    self.db[key].update({'Last_Id': guid, 'Update_Time': new_update, 'Listening': True})
-                next_update = min(new_update, next_update)
-            # Update time has not passed
-            else:
-                next_update = min(self.db[key]['Update_Time'], next_update)
+                # Update time has not passed
+                else:
+                    next_update = min(update_entry['update_time'], next_update)
         return next_update
 
     def post_to_subreddit(self, sub_name, title, link, flair_text=None):

@@ -25,4 +25,4 @@ def load_db(filename):
 
 def update_db(filename, db):
     with open(filename, 'w') as file:
-        json.dump(db, file, indent=4)
+        json.dump(db, file, indent=2)
