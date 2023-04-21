@@ -1,5 +1,8 @@
 # RSS to Subreddit
 
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/GcWan/rss-to-subreddit?sort=semver)
+![MIT License](https://img.shields.io/github/license/GcWan/rss-to-subreddit)
+
 ### Description
 
 This script will post the latest news (title and link) from RSS feeds to subreddits of your choice. Multiple pairs of
@@ -25,7 +28,9 @@ Note: You should only use this on subreddits that you moderate. Make sure you do
 
 ## Setup Steps
 
-Download this repository as a zip file and unzip it on your own computer.
+Download the desired [release of this repository](https://github.com/GcWan/rss-to-subreddit/releases) and unzip it on
+your own computer. This README is only applicable for release v1.1.0. If you would like to use a different version, please
+refer to the usage instructions inside the [wiki](https://github.com/GcWan/rss-to-subreddit/wiki).
 
 ### Register app on Reddit
 
@@ -70,6 +75,8 @@ client_secret: client_secret
   RSS url to generate posts from.
     - You may add/remove as many subreddits as you want as long as they follow the format in the template above.
     - Do not add duplicate entries with the same pairing of subreddit and RSS url.
+    - Although most strings do not have to be surrounded by quotes, your RSS url might have to be surrounded by quotes
+      if it contains special characters.
 - The delay parameter should be a positive integer representing how many seconds the program waits before
   listening to RSS feed for updates.
     - The flair parameter is optional. If you want to add a flair to your posts, enter the text you want to use as
