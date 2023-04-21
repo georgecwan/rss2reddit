@@ -91,19 +91,13 @@ class RedditBot:
                 current_feed = sub_info['rss_feeds'][index]
                 update_entry = updates[index]
                 url = current_feed['urls'][update_entry['update_index']]
-                # New entry
-                if url not in sources:
-                    sources[url] = {'last_modified': None, 'etag': None}
-                    update_entry['listening'] = True
-                    print(f"Listening to {url}...")
-                    response_text = self.rss_request(url, sub_info['name'])
-                    if response_text:
-                        new_update = math.ceil(time.time()) + 1800  # Check 30 minutes later
-                        sources[url]['last_id'] = find_newest_headline(response_text)[2]
-                        update_entry['update_time'] = new_update
-                        next_update = min(new_update, next_update)
                 # Update time has passed
-                elif update_entry['update_time'] <= math.ceil(time.time()):
+                if update_entry['update_time'] <= math.ceil(time.time()):
+                    # New Entry
+                    if url not in sources:
+                        sources[url] = {'last_modified': None, 'etag': None}
+                        print(f"Adding {url} to db...")
+                    # Get RSS Feed
                     response_text = self.rss_request(url, sub_info['name'])
                     if not response_text:
                         print(f"No new data from {url}, continuing to listen")
@@ -115,6 +109,7 @@ class RedditBot:
                     # Check for errors from RSSParser.py
                     if not title:
                         continue
+                    # Update db and post to Reddit
                     if not update_entry['listening']:
                         print(f"Began listening")
                         new_update = int(time.time()) + 1800  # Check 30 minutes later
