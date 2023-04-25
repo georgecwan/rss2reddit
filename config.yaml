@@ -1,15 +1,25 @@
 ---
+# Subreddits
+- name: mysubreddit1
+  rss_feeds:
+    - urls:
+        - https://example.com/feed1.rss
+        - https://example.com/feed2.rss
+      check_interval: 60
+      flair: Flair
+    - urls:
+        - https://example.com/feed3.rss
+      check_interval: 120
+- name: mysubreddit2
+  rss_feeds:
+    - urls:
+        - https://example.com/feed4.rss
+        - https://example.com/feed5.rss
+      check_interval: 180
+...
+---
 # Credentials
 user: username
 password: password
 client_id: client_id
 client_secret: client_secret
----
-# Subreddits
-- subreddit_name: subreddit_name
-  rss_url: rss_url
-  delay: delay_in_seconds
-  flair: optional_flair
-- subreddit_name: subreddit_name2
-  rss_url: rss_url2
-  delay: delay_in_seconds2
