@@ -5,15 +5,17 @@
 
 ### Description
 
-This script will post the latest news (title and link) from RSS feeds to subreddits of your choice. Multiple pairs of
-subreddits and RSS feeds can be configured, with each pair independently alternating between listening and sleeping
-mode.
-In listening mode, the script will check the RSS feed for new links every 30 minutes. If a new link is found,
-the script will post the new link to the corresponding subreddit. *(Note: only links added to the RSS feed **after**
-the script begins listening will be posted)* In sleeping mode, the script will not check the RSS feed for new links and
-any updates to the RSS feed during sleeping mode will be ignored.
+This script will post the latest news (title and link) from RSS feeds to subreddits of your choice. Each subreddit can
+be configured with multiple lists of RSS feeds. The script will go through each feed in each list and listen to them
+one at a time. While listening, the script will check the RSS feed for new items every 30 minutes. If a new item is
+found, the script will post the new item's url address in the corresponding subreddit. *(Note: only links added to the
+RSS feed **after** the script begins listening will be posted)* After posting, the script will not check the RSS feed
+for new links and any updates to the RSS feed will be ignored until the script begins listening to the RSS feed again.
+To better understand the functionalities of this script, please read the [Config.yaml Documentation](#setup-steps)
+in the wiki.
 
-Note: You should only use this on subreddits that you moderate. Make sure you do not break Reddit's terms of service.
+Note: You should only use this on subreddits that you moderate. Make sure you do not break Reddit's terms of service or
+subreddit rules while using this script.
 
 ## Table of Contents
 
@@ -29,8 +31,8 @@ Note: You should only use this on subreddits that you moderate. Make sure you do
 ## Setup Steps
 
 Download the desired [release of this repository](https://github.com/GcWan/rss-to-subreddit/releases) and unzip it on
-your own computer. This README is only applicable for release v1.1.0. If you would like to use a different version, please
-refer to the usage instructions inside the [wiki](https://github.com/GcWan/rss-to-subreddit/wiki).
+your own computer. This README is only applicable for release v2.0.0. If you would like to use a different version,
+please find the corresponding usage instructions inside the [wiki](https://github.com/GcWan/rss-to-subreddit/wiki).
 
 ### Register app on Reddit
 
