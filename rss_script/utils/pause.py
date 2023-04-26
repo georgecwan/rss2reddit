@@ -1,19 +1,24 @@
 import time
 
 
-# https://github.com/jgillick/python-pause/blob/master/pause/__init__.py
-def until(timestamp):
+# Inspiration: https://github.com/jgillick/python-pause/blob/master/pause/__init__.py
+def until(timestamp) -> None:
     """
-    Pause your program until a specific end time.
-    'time' is either a valid datetime object or unix timestamp in seconds (i.e. seconds since Unix epoch)
+    Sleep until specified end time.
+
+    Args:
+        timestamp (int, float): Unix timestamp of when to wake up
+
+    Returns:
+        None
     """
     end = timestamp
 
-    # Type check
+    # Type check (int or float)
     if not isinstance(end, (int, float)):
         raise Exception('The timestamp parameter is not a number or datetime object')
 
-    # Now we wait
+    # Sleep in increments of no more than 1 hour. As the time gets closer, the increments get shorter in length
     while True:
         now = time.time()
         diff = end - now
