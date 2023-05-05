@@ -11,10 +11,47 @@ from . import utils
 
 
 class RedditBot:
+    """
+    RedditBot class that handles all the Reddit API calls and RSS requests
+
+    Attributes
+    ----------
+    testing : bool
+        Boolean to determine if the bot is in testing mode. If True, the bot will not post to Reddit or update the
+        db.json file.
+    credentials : dict
+        Dictionary containing the credentials for the Reddit API
+    sub_list : list
+        List of dictionaries containing the subreddits' information. Each dictionary contains 'name', the subreddit's
+        name, and 'rss_feeds', the list of RSS feeds to check. Each item in 'rss_feeds' contains 'urls', the list of RSS
+        urls to check, 'check_interval', the time in seconds between each check, and optionally 'flair', the flair to
+        use when making Reddit posts of the RSS feed.
+    db_file : str
+        The absolute path to the database file
+    db : dict
+        Dictionary containing the database. This dictionary is loaded from and stored into the db_file
+    reddit : Reddit object
+        Reddit object from praw used to interact with the Reddit API
+    USER_AGENT : str
+        String used to identify the browser when making requests to the RSS feeds
+    """
+
     USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) " \
                  "Chrome/108.0.0.0 Safari/537.36 OPR/94.0.0.0"
 
-    def __init__(self, testing, config_file, db_file):
+    def __init__(self, testing: bool, config_file: str, db_file: str) -> None:
+        """
+        Initializes the RedditBot object
+
+        Args:
+            testing: Boolean to determine if the bot is in testing mode. If True, the bot will not post to Reddit or
+                update the db.json file.
+            config_file: The absolute path to the config file
+            db_file: The absolute path to the database file
+
+        Returns:
+            None
+        """
         # Sets testing mode
         self.testing = testing
         print(f"Testing Mode: {'ON' if self.testing else 'OFF'}")
@@ -36,7 +73,15 @@ class RedditBot:
         utils.send_discord_message(
             f"Bot Started on {'Testing Mode' if self.testing else 'Normal Mode'} at {time.strftime('%Y-%m-%d %H:%M')}")
 
-    def initialize_db(self):
+    def initialize_db(self) -> None:
+        """
+        Initializes the database by adding any new subreddits and RSS feeds to the database
+
+        Precondition:
+            self.db is initialized with values from db.json
+        Returns:
+            None
+        """
         try:
             for sub_info in self.sub_list:
                 if sub_info['name'] not in self.db:
@@ -63,7 +108,16 @@ class RedditBot:
             print("The file might be corrupted, try deleting db.json then try again.")
             sys.exit(1)
 
-    def rss_request(self, url, subreddit):
+    def rss_request(self, url: str, subreddit: str) -> str | None:
+        """
+        Makes a request to the RSS feed and returns the response text if the request is successful
+
+        Args:
+            url: The url of the RSS feed
+            subreddit: The name of the subreddit with the RSS entry
+        Returns:
+            The response text of the RSS feed if the request is successful, None otherwise
+        """
         try:
             db_entry = self.db[subreddit]['rss_sources'][url]
             resp = requests.get(url,
@@ -77,8 +131,15 @@ class RedditBot:
                 return None
         except Exception as e:
             print(f'Error requesting {url}: {str(e)}')
+            return None
 
-    def subreddits_loop(self):
+    def subreddits_loop(self) -> int:
+        """
+        Loops through all the subreddits and RSS feeds and checks for new entries
+
+        Returns:
+            The time in seconds until the next time the loop should run
+        """
         next_update = math.inf  # next_update is the time in seconds until the next update
         for sub_info in self.sub_list:
             print(f"Checking r/{sub_info['name']}...")
@@ -92,7 +153,7 @@ class RedditBot:
                 if update_entry['update_time'] <= math.ceil(time.time()):
                     # New Entry
                     if url not in sources:
-                        sources[url] = {'last_modified': None, 'etag': None}
+                        sources[url] = {'last_modified': None, 'etag': None, 'last_id': None}
                         print(f"Adding {url} to db...")
                     # Get RSS Feed
                     response_text = self.rss_request(url, sub_info['name'])
@@ -131,8 +192,19 @@ class RedditBot:
                     next_update = min(update_entry['update_time'], next_update)
         return next_update
 
-    def post_to_subreddit(self, sub_name, title, link, flair_text=None):
-        def post_with_flair():
+    def post_to_subreddit(self, sub_name: str, title: str, link: str, flair_text: str | None = None) -> None:
+        """
+        Posts to the subreddit with the given flair_text if applicable
+
+        Args:
+            sub_name: The name of the subreddit to post to
+            title: The title of the post
+            link: The url link of the post
+            flair_text: (Optional) The flair text to use for the post
+        """
+
+        def post_with_flair() -> None:
+            """Posts to the subreddit with the given flair_text"""
             # Find flair_id
             flair_choices = list(subreddit.flair.link_templates.user_selectable())
             for flair in flair_choices:
@@ -157,7 +229,8 @@ class RedditBot:
             utils.send_discord_message(f"Posted {link} to r/{sub_name}")
             print(f"Posted to {sub_name}, flair_text not found")
 
-        def post_without_flair():
+        def post_without_flair() -> None:
+            """Posts to the subreddit without a flair"""
             if not self.testing:
                 subreddit.submit(title=title, url=link, resubmit=False)
             utils.send_discord_message(f"Posted {link} to r/{sub_name}")
@@ -173,8 +246,11 @@ class RedditBot:
         except Exception as e:
             print(f'Error posting to {sub_name}: {str(e)}')
 
-    # Main Program Loop
-    def run(self):
+    def run(self) -> None:
+        """
+        Main program loop that checks the RSS feeds, updates the db.json file, then sleeps for a specified amount of
+        time.
+        """
         while True:
             print(f"\n[{time.strftime('%Y-%m-%d %H:%M')}] Checking RSS feeds...")
             next_update = self.subreddits_loop()
