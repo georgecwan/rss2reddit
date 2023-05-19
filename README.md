@@ -1,7 +1,7 @@
-# RSS to Subreddit
+# RSS2Reddit
 
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/GcWan/rss-to-subreddit?sort=semver)
-![MIT License](https://img.shields.io/github/license/GcWan/rss-to-subreddit)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/GcWan/rss2reddit?sort=semver)
+![MIT License](https://img.shields.io/github/license/GcWan/rss2reddit)
 
 ### Description
 
@@ -11,7 +11,7 @@ one at a time. While listening, the script will check the RSS feed for new items
 found, the script will post the new item's url address in the corresponding subreddit. *(Note: only links added to the
 RSS feed **after** the script begins listening will be posted)* After posting, the script will not check the RSS feed
 for new links and any updates to the RSS feed will be ignored until the script begins listening to the RSS feed again.
-To better understand the functionalities of this script, please read the [Config.yaml Documentation](#setup-steps)
+To better understand the functionalities of this script, please read the [Config Documentation](#setup-steps)
 in the wiki.
 
 Note: You should only use this on subreddits that you moderate. Make sure you do not break Reddit's terms of service or
@@ -30,9 +30,9 @@ subreddit rules while using this script.
 
 ## Setup Steps
 
-Download the desired [release of this repository](https://github.com/GcWan/rss-to-subreddit/releases) and unzip it on
+Download the desired [release of this repository](https://github.com/GcWan/rss2reddit/releases) and unzip it on
 your own computer. This README is only applicable for release v2.0.0. If you would like to use a different version,
-please find the corresponding usage instructions inside the [wiki](https://github.com/GcWan/rss-to-subreddit/wiki).
+please find the corresponding usage instructions inside the [wiki](https://github.com/GcWan/rss2reddit/wiki).
 
 ### Register app on Reddit
 
@@ -109,7 +109,7 @@ to [Step 2](#step-2-start-the-script).
     - If the Python version is shown to be Python 2, you may have to run the same command with `python3` instead
       of `python` (e.g. `python3 --version`). If the correct command `python3`, Make sure to use the `python3` command
       for all the steps below as well.
-- Navigate to your local copy of the rss-to-subreddit folder: `cd PATH_TO_FOLDER`
+- Navigate to your local copy of the rss2reddit folder: `cd PATH_TO_FOLDER`
     - If you are unsure about the path, dragging the folder into the command line interface might paste the path in for
       you. On some platforms, you can also right-click the folder and select "Copy as path".
 - **Optional but recommended:** Create a virtual environment: `python -m venv venv`
@@ -122,7 +122,7 @@ to [Step 2](#step-2-start-the-script).
 
 #### Step 2: Start the script
 
-- If you haven't already, navigate to your local copy of the rss-to-subreddit folder: `cd PATH_TO_FOLDER`
+- If you haven't already, navigate to your local copy of the rss2reddit folder: `cd PATH_TO_FOLDER`
 - If you created a virtual environment, activate it: `venv\Scripts\activate.bat` (Windows CMD)
   or `source venv/bin/activate` (
   Mac/Linux)
@@ -154,15 +154,16 @@ to [Step 2](#step-2-start-the-docker-container).
 #### Step 2: Start the Docker Container
 
 - Open your command-line app (e.g. Powershell, Terminal, etc.)
-- Navigate to your local copy of the rss-to-subreddit folder: `cd PATH_TO_FOLDER`
+- Navigate to your local copy of the rss2reddit folder: `cd PATH_TO_FOLDER`
     - If you are unsure about the path, dragging the folder into the command line interface might paste the path in for
       you. On some platforms, you can also right-click the folder and select "Copy as path".
 - Run the Docker container using Docker Compose: `docker compose up -d`
     - If you have made changes to files within the folder including config.yaml since the last time you built the Docker
       image, you will have to
       run `docker compose up -d --build` to rebuild the image. Otherwise, the script will use the old config file.
-- If you wish to see the output of the script, run `docker logs -f rss-to-subreddit` or use Docker
-  Desktop.
+- If you wish to see the output of the script, run `docker logs -f rss-script` or use Docker
+  Desktop. If you press Ctrl-C while viewing the output, the output will stop being displayed but the script will
+  continue to run in the background.
 - To stop the Docker container: `docker compose down` or use Docker Desktop. Note that closing the command line
   interface or Docker Desktop alone will not stop the script.
 - Note: You may have to adjust the CPU and memory constraints in Docker Desktop if the script is using too much of your
@@ -188,7 +189,7 @@ These steps are completely optional and the script will still work without a Dis
 
 ### Creating a .env file (local Python installation or Docker)
 
-- Create a file named ".env" in your local copy of the rss-to-subreddit folder
+- Create a file named ".env" in your local copy of the rss2reddit folder
     - You can do this by running `touch .env` in Terminal (Mac/Linux) or by creating a new file using Notepad on Windows
 - Enter `DISCORD_WEBHOOK_URL=` followed by the webhook URL you copied from Discord and save the file
 - Redo the steps from [starting the script](#step-2-start-the-script). When the script starts running, you should
