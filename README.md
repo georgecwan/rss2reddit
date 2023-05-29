@@ -30,6 +30,9 @@ subreddit rules while using this script.
 
 ## Setup Steps
 
+**THE REPOSITORY IS CURRENTLY ON VERSION 2.0.0 BUT THIS README HAS NOT BEEN UPDATED YET. FOLLOWING THESE STEPS WITH THE
+CURRENT REPO WILL CAUSE ERRORS. PLEASE USE AN EARLIER RELEASE AND FOLLOW THE INSTRUCTIONS IN THE WIKI.**
+
 Download the desired [release of this repository](https://github.com/GcWan/rss2reddit/releases) and unzip it on
 your own computer. This README is only applicable for release v2.0.0. If you would like to use a different version,
 please find the corresponding usage instructions inside the [wiki](https://github.com/GcWan/rss2reddit/wiki).
@@ -52,7 +55,7 @@ please find the corresponding usage instructions inside the [wiki](https://githu
 
 #### Config.yaml Format
 
-```
+```yaml
 ---
 # Credentials
 user: my_username
