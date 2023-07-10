@@ -4,7 +4,7 @@ async-timeout==4.0.2
 attrs==23.1.0
 beautifulsoup4==4.12.2
 certifi==2023.5.7
-charset-normalizer==3.1.0
+charset-normalizer==3.2.0
 colorclass==2.2.2
 discordwebhook==1.0.3
 docopt==0.6.2
