@@ -36,8 +36,8 @@ class RedditBot:
         String used to identify the browser when making requests to the RSS feeds
     """
 
-    USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) " \
-                 "Chrome/108.0.0.0 Safari/537.36 OPR/94.0.0.0"
+    USER_AGENT = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
+                  "Chrome/114.0.0.0 Safari/537.36")
 
     def __init__(self, testing: bool, config_file: str, db_file: str) -> None:
         """
