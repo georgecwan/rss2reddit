@@ -1,8 +1,9 @@
-name: rss_to_subreddit
+version: "3.9"
+name: rss2reddit
 services:
   rss_to_subreddit:
     container_name: rss-script
-    image: rss-to-subreddit
+    image: img_rss2reddit
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,8 +11,8 @@ services:
     stdin_open: true
     tty: true
     environment:
-      - TZ=
-    #  - DISCORD_WEBHOOK_URL=
+    #      - TZ=
+    #      - DISCORD_WEBHOOK_URL=
     volumes:
       - ./db:/app/db
     deploy:
@@ -19,3 +20,8 @@ services:
         limits:
           cpus: '0.50'
           memory: 50M
+      restart_policy:
+        condition: on-failure
+        delay: 15s
+        max_attempts: 3
+        window: 120s
