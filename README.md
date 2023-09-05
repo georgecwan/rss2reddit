@@ -11,7 +11,8 @@ one at a time. While listening, the script will check the RSS feed for new items
 found, the script will post the new item's url address in the corresponding subreddit. *(Note: only links added to the
 RSS feed **after** the script begins listening will be posted)* After posting, the script will not check the RSS feed
 for new links and any updates to the RSS feed will be ignored until the script begins listening to the RSS feed again.
-To better understand the functionalities of this script, please read the [Config Documentation](#setup-steps)
+To better understand the functionalities of this script, please read
+the [Config Documentation](https://github.com/GcWan/rss-to-subreddit/wiki/V2-Config-Documentation)
 in the wiki.
 
 Note: You should only use this on subreddits that you moderate. Make sure you do not break Reddit's terms of service or
@@ -29,9 +30,6 @@ subreddit rules while using this script.
 - [Useful Links](#useful-links)
 
 ## Setup Steps
-
-**THE REPOSITORY IS CURRENTLY ON VERSION 2.0.0 BUT THIS README HAS NOT BEEN UPDATED YET. FOLLOWING THESE STEPS WITH THE
-CURRENT REPO WILL CAUSE ERRORS. PLEASE USE AN EARLIER RELEASE AND FOLLOW THE INSTRUCTIONS IN THE WIKI.**
 
 Download the desired [release of this repository](https://github.com/GcWan/rss2reddit/releases) and unzip it on
 your own computer. This README is only applicable for release v2.0.0. If you would like to use a different version,
