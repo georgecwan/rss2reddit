@@ -12,7 +12,7 @@ frozenlist==1.4.0
 idna==3.4
 lxml==4.9.3
 multidict==6.0.4
-packaging==23.1
+packaging==23.2
 praw==7.7.1
 prawcore==2.4.0
 python-dotenv==1.0.0
