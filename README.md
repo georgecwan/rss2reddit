@@ -14,7 +14,6 @@ for new links and any updates to the RSS feed will be ignored until the script b
 To better understand the functionalities of this script, please read
 the [Config Documentation](https://github.com/GcWan/rss-to-subreddit/wiki/V2-Config-Documentation)
 in the wiki.
-
 Note: You should only use this on subreddits that you moderate. Make sure you do not break Reddit's terms of service or
 subreddit rules while using this script.
 

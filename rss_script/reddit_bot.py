@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import math
 import time
 import sys
@@ -192,6 +192,46 @@ class RedditBot:
                     next_update = min(update_entry['update_time'], next_update)
         return next_update
 
+    @staticmethod
+    def check_for_duplicates(title: str, link: str, subreddit: praw.reddit.Subreddit) -> bool:
+        """
+        Checks if the post is a duplicate by comparing the title and link to posts in the subreddit
+        from the last 6 hours.
+        Links are checked for exact matches, titles are checked for similarity using a spaCy model.
+        The current threshold for similarity is 0.8.
+
+        Args:
+            title: The title of the post
+            link: The url link of the post
+            subreddit: The name of the subreddit to check for duplicate posts in
+
+        Returns:
+            True if the post is a duplicate, False otherwise
+        """
+        try:
+            # Calculate the timestamp for the past 6 hours
+            past_timestamp = int((datetime.now() - timedelta(hours=6)).timestamp())
+            print(f"Finding duplicates of {title}...")
+            for post in subreddit.new(limit=100):
+                if post.created_utc < past_timestamp:
+                    return False
+                if post.url == link:
+                    utils.send_discord_message(f"Duplicate found: {post.permalink}")
+                    print(f"Duplicate found: {post.permalink}")
+                    return True
+                similarity = utils.get_similarity(title, post.title)
+                # Only here for testing, remove later
+                print(f"{post.title} has {similarity}")
+                if similarity > 0.8:
+                    utils.send_discord_message(
+                        f"Similar title found: {title} and {post.permalink} with a similarity of {similarity}")
+                    print(f"Similar title found: {title} and {post.title} with a similarity of {similarity}")
+                    return True
+            return False
+        except Exception as e:
+            print(f'Error checking for duplicates: {str(e)}')
+            return False
+
     def post_to_subreddit(self, sub_name: str, title: str, link: str, flair_text: str | None = None) -> None:
         """
         Posts to the subreddit with the given flair_text if applicable
@@ -239,6 +279,8 @@ class RedditBot:
         # Posts to subreddit
         try:
             subreddit = self.reddit.subreddit(sub_name)
+            if self.check_for_duplicates(title, link, subreddit):
+                return
             if flair_text:
                 post_with_flair()
             else:
