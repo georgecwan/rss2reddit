@@ -178,14 +178,20 @@ class RedditBot:
                         new_update = int(time.time()) + 1800  # Check 30 minutes later
                         update_entry.update({'update_time': new_update})
                     else:
-                        print("New story found! Making reddit post...")
-                        self.post_to_subreddit(sub_info['name'], title, link,
-                                               current_feed['flair'] if 'flair' in current_feed else None)
-                        new_update = int(time.time()) + current_feed['check_interval']
-                        sources[url]['last_id'] = guid
-                        update_entry.update({'update_time': new_update,
-                                             'update_index': (update_entry['update_index'] + 1) % len(
-                                                 current_feed['urls']), 'listening': False})
+                        print("New story found! Checking for duplicates...")
+                        if self.check_for_duplicates(title, link, self.reddit.subreddit(sub_info['name'])):
+                            new_update = int(time.time()) + 1800  # Check 30 minutes later
+                            sources[url]['last_id'] = guid
+                            update_entry.update({'update_time': new_update, 'listening': True})
+                        else:
+                            print("No duplicates found, posting to Reddit...")
+                            self.post_to_subreddit(sub_info['name'], title, link,
+                                                   current_feed['flair'] if 'flair' in current_feed else None)
+                            new_update = int(time.time()) + current_feed['check_interval']
+                            sources[url]['last_id'] = guid
+                            update_entry.update({'update_time': new_update,
+                                                 'update_index': (update_entry['update_index'] + 1) % len(
+                                                     current_feed['urls']), 'listening': False})
                     next_update = min(new_update, next_update)
                 # Update time has not passed
                 else:
@@ -196,7 +202,7 @@ class RedditBot:
     def check_for_duplicates(title: str, link: str, subreddit: praw.reddit.Subreddit) -> bool:
         """
         Checks if the post is a duplicate by comparing the title and link to posts in the subreddit
-        from the last 6 hours.
+        from the last 24 hours (up to 100 posts).
         Links are checked for exact matches, titles are checked for similarity using a spaCy model.
         The current threshold for similarity is 0.8.
 
@@ -210,21 +216,19 @@ class RedditBot:
         """
         try:
             # Calculate the timestamp for the past 6 hours
-            past_timestamp = int((datetime.now() - timedelta(hours=6)).timestamp())
-            print(f"Finding duplicates of {title}...")
+            past_timestamp = int((datetime.now() - timedelta(hours=24)).timestamp())
             for post in subreddit.new(limit=100):
                 if post.created_utc < past_timestamp:
                     return False
                 if post.url == link:
-                    utils.send_discord_message(f"Duplicate found: {post.permalink}")
-                    print(f"Duplicate found: {post.permalink}")
+                    utils.send_discord_message(f"Duplicate found: reddit.com{post.permalink}")
+                    print(f"Duplicate found: reddit.com{post.permalink}")
                     return True
                 similarity = utils.get_similarity(title, post.title)
                 # Only here for testing, remove later
-                print(f"{post.title} has {similarity}")
                 if similarity > 0.8:
                     utils.send_discord_message(
-                        f"Similar title found: {title} and {post.permalink} with a similarity of {similarity}")
+                        f"Similar title found: {title} and reddit.com{post.permalink} with a similarity of {similarity}")
                     print(f"Similar title found: {title} and {post.title} with a similarity of {similarity}")
                     return True
             return False
