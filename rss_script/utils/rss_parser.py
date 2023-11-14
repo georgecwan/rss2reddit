@@ -1,5 +1,3 @@
-from typing import Tuple, Any
-
 from bs4 import BeautifulSoup
 from pprint import pprint
 
