@@ -344,8 +344,6 @@ class RedditBot:
         # Posts to subreddit
         try:
             subreddit = self.reddit.subreddit(sub_name)
-            if self._check_for_duplicates(title, link, subreddit):
-                return
             if flair_text:
                 post_with_flair()
             else:
