@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from pprint import pprint
+from pprint import pformat
 
 
 def find_newest_headline(xml_data) -> tuple[str, str, str] | tuple[None, None, None]:
@@ -21,7 +21,5 @@ def find_newest_headline(xml_data) -> tuple[str, str, str] | tuple[None, None, N
         return title, link, guid
     except Exception as e:
         print(f"Error parsing RSS feed: {e}")
-        print(f"XML Data:\n")
-        pprint(soup)
-        print("\n")
+        print(f"XML Data:\n{pformat(soup)}\n")
         return None, None, None

@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta
 import math
+import logging
 import time
 import sys
 
 import praw
 import requests
-from pprint import pprint
+from pprint import pformat
 
 from . import utils
 
@@ -39,7 +40,7 @@ class RedditBot:
     USER_AGENT = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
                   "Chrome/114.0.0.0 Safari/537.36")
 
-    def __init__(self, testing: bool, config_file: str, db_file: str) -> None:
+    def __init__(self, testing: bool, config_file: str, db_file: str, log_file: str) -> None:
         """
         Initializes the RedditBot object
 
@@ -52,14 +53,27 @@ class RedditBot:
         Returns:
             None
         """
+        # Initializes logger (name isn't used in output)
+        self.logger = logging.getLogger('rss_script')
+        self.logger.setLevel(logging.DEBUG)
+        # Create a file handler
+        file_handler = logging.FileHandler(log_file, mode='w')
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                                                    "%Y-%m-%d %H:%M:%S"))
+        self.logger.addHandler(file_handler)
+        # Create a console handler and set the level to INFO with no date formatter
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
+        console_handler.setFormatter(logging.Formatter('%(name)s - %(levelname)s - %(message)s'))
+        self.logger.addHandler(console_handler)
         # Sets testing mode
         self.testing = testing
-        print(f"Testing Mode: {'ON' if self.testing else 'OFF'}")
+        self.logger.info(f"Testing Mode: {'ON' if self.testing else 'OFF'}")
         # Loads config file, sets self.credentials and self.sub_list
         self.sub_list, self.credentials = utils.load_config(config_file)
-        print("Config List:")
-        pprint(self.sub_list)
-        print("")
+        self.logger.debug(f"Config List:\n{pformat(self.sub_list)}\n")
+
         # Initializes db dictionary, sets self.db
         self.db_file = db_file
         self.db = utils.load_db(db_file)
@@ -104,8 +118,8 @@ class RedditBot:
                             new_rss_sources[url] = db_entry['rss_sources'][url]
                     db_entry['rss_sources'] = new_rss_sources
         except Exception as e:
-            print(f'Unable to read the db: {str(e)}')
-            print("The file might be corrupted, try deleting db.json then try again.")
+            self.logger.error(f'Unable to read the db: {str(e)}')
+            self.logger.error("The file might be corrupted, try deleting db.json then try again.")
             sys.exit(1)
 
     def run(self) -> None:
@@ -114,15 +128,15 @@ class RedditBot:
         time.
         """
         while True:
-            print(f"\n[{time.strftime('%Y-%m-%d %H:%M')}] Checking RSS feeds...")
+            self.logger.info(f"\n[{time.strftime('%Y-%m-%d %H:%M')}] Checking RSS feeds...")
             next_update = self._subreddits_loop()
             # Update db.json
             if not self.testing:
-                print("Updating db.json...")
+                self.logger.debug("Updating db.json...")
                 utils.update_db(self.db_file, self.db)
             # Wait until next update
             t = datetime.fromtimestamp(next_update).strftime('%Y-%m-%d %H:%M')
-            print(f"Next update at {t}")
+            self.logger.info(f"Next update at {t}")
             utils.until(next_update)
 
     def _subreddits_loop(self) -> float:
@@ -134,7 +148,7 @@ class RedditBot:
         """
         next_update = math.inf  # next_update is the time in seconds until the next update
         for sub_info in self.sub_list:
-            print(f"Checking r/{sub_info['name']}...")
+            self.logger.debug(f"Checking r/{sub_info['name']}...")
             updates = self.db[sub_info['name']]['update_list']
             sources = self.db[sub_info['name']]['rss_sources']
             for index in range(len(sub_info['rss_feeds'])):
@@ -168,11 +182,11 @@ class RedditBot:
         # New Entry
         if url not in sources:
             sources[url] = {'last_modified': None, 'etag': None, 'last_id': None}
-            print(f"Adding {url} to db...")
+            self.logger.debug(f"Adding {url} to db...")
         # Get RSS Feed
         response_text = self._rss_request(url, sub_info['name'])
         if not response_text:
-            print(f"No new data from {url}, continuing to listen")
+            self.logger.debug(f"No new data from {url}, continuing to listen")
             new_update = int(time.time()) + 1800  # Check 30 minutes later
             update_entry.update({'update_time': new_update, 'listening': True})
             return new_update
@@ -206,7 +220,7 @@ class RedditBot:
             else:
                 return None
         except Exception as e:
-            print(f'Error requesting {url}: {str(e)}')
+            self.logger.error(f'Error requesting {url}: {str(e)}')
             return None
 
     def _handle_rss_response(self, sub_info: dict, sources: dict, current_feed: dict, update_entry: dict, url: str,
@@ -230,22 +244,22 @@ class RedditBot:
         """
         # Update db and post to Reddit
         if not update_entry['listening']:
-            print(f"Began listening")
+            self.logger.debug(f"Began listening")
             new_update = int(time.time()) + 1800  # Check 30 minutes later
             sources[url]['last_id'] = guid
             update_entry.update({'update_time': new_update, 'listening': True})
         elif sources[url]['last_id'] == guid:
-            print(f"No new stories from {url}")
+            self.logger.debug(f"No new stories from {url}")
             new_update = int(time.time()) + 1800  # Check 30 minutes later
             update_entry.update({'update_time': new_update})
         else:
-            print("New story found! Checking for duplicates...")
+            self.logger.debug(f"New story found! Checking for duplicates of {link}...")
             if self._check_for_duplicates(title, link, self.reddit.subreddit(sub_info['name'])):
                 new_update = int(time.time()) + 1800  # Check 30 minutes later
                 sources[url]['last_id'] = guid
                 update_entry.update({'update_time': new_update, 'listening': True})
             else:
-                print("No duplicates found, posting to Reddit...")
+                self.logger.debug("No duplicates found, posting to Reddit...")
                 self._post_to_subreddit(sub_info['name'], title, link,
                                         current_feed['flair'] if 'flair' in current_feed else None)
                 new_update = int(time.time()) + current_feed['check_interval']
@@ -255,8 +269,7 @@ class RedditBot:
                                      'listening': False})
         return new_update
 
-    @staticmethod
-    def _check_for_duplicates(title: str, link: str, subreddit: praw.reddit.Subreddit) -> bool:
+    def _check_for_duplicates(self, title: str, link: str, subreddit: praw.reddit.Subreddit) -> bool:
         """
         Checks if the post is a duplicate by comparing the title and link to posts in the subreddit
         from the last 24 hours (up to 1000 posts).
@@ -277,9 +290,10 @@ class RedditBot:
             for post in subreddit.new(limit=1000):
                 if post.created_utc < past_timestamp:
                     return False
-                if utils.remove_query_params(link) == post.url or link == post.url:
-                    utils.send_discord_message(f"Duplicate found: https://www.reddit.com{post.permalink}")
-                    print(f"Duplicate found: https://www.reddit.com{post.permalink}")
+                if link == post.url or utils.remove_query_params(link) == post.url:
+                    utils.send_discord_message(
+                        f"Duplicate found:\n- {link}\n- https://www.reddit.com{post.permalink}")
+                    self.logger.debug(f"Duplicate found: {link} posted at https://www.reddit.com{post.permalink}")
                     return True
                 similarity = utils.get_similarity(title, post.title)
                 # Only here for testing, remove later
@@ -287,14 +301,15 @@ class RedditBot:
                     utils.send_discord_message(
                         f"Similar title found with a similarity of {similarity}: \n- {title} \n- {post.title}\n"
                         f"Source: https://www.reddit.com{post.permalink}")
-                    print(f"Similar title found: {title} and {post.title} with a similarity of {similarity}")
+                    self.logger.debug(
+                        f"Similar title found: {title} and {post.title} with a similarity of {similarity}")
                     return True
                 elif similarity > 0.75:
                     utils.send_discord_message(
                         f"Still posting with a similarity of {similarity}: \n- {title} \n- {post.title}\n"
                         f"Source: https://www.reddit.com{post.permalink}")
         except Exception as e:
-            print(f'Error checking for duplicates: {str(e)}')
+            self.logger.error(f'Error checking for duplicates: {str(e)}')
             return False
 
     def _post_to_subreddit(self, sub_name: str, title: str, link: str, flair_text: str | None = None) -> None:
@@ -317,7 +332,7 @@ class RedditBot:
                     if not self.testing:
                         subreddit.submit(title=title, url=link, resubmit=False, flair_id=flair["flair_template_id"])
                     utils.send_discord_message(f"Posted {link} to r/{sub_name}")
-                    print(f"Posted to {sub_name} with preset flair {flair_text}")
+                    self.logger.info(f"Posted to {sub_name} with preset flair {flair_text}")
                     return
             # Use editable flair if no pre-defined flair found
             for flair in flair_choices:
@@ -326,20 +341,20 @@ class RedditBot:
                         subreddit.submit(title=title, url=link, resubmit=False, flair_id=flair["flair_template_id"],
                                          flair_text=flair_text)
                     utils.send_discord_message(f"Posted {link} to r/{sub_name}")
-                    print(f"Posted to {sub_name} with custom flair {flair_text}")
+                    self.logger.info(f"Posted to {sub_name} with custom flair {flair_text}")
                     return
             # Use default flair if no editable flair found
             if not self.testing:
                 subreddit.submit(title=title, url=link, resubmit=False)
             utils.send_discord_message(f"Posted {link} to r/{sub_name}")
-            print(f"Posted to {sub_name}, flair_text not found")
+            self.logger.info(f"Posted to {sub_name}, flair_text not found")
 
         def post_without_flair() -> None:
             """Posts to the subreddit without a flair"""
             if not self.testing:
                 subreddit.submit(title=title, url=link, resubmit=False)
             utils.send_discord_message(f"Posted {link} to r/{sub_name}")
-            print(f"Posted to {sub_name}")
+            self.logger.info(f"Posted to {sub_name}")
 
         # Posts to subreddit
         try:
@@ -349,4 +364,4 @@ class RedditBot:
             else:
                 post_without_flair()
         except Exception as e:
-            print(f'Error posting to {sub_name}: {str(e)}')
+            self.logger.error(f'Error posting to {sub_name}: {str(e)}')
