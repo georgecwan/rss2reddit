@@ -128,7 +128,7 @@ class RedditBot:
         time.
         """
         while True:
-            self.logger.info(f"\n[{time.strftime('%Y-%m-%d %H:%M')}] Checking RSS feeds...")
+            self.logger.info(f"[{time.strftime('%Y-%m-%d %H:%M')}] Checking RSS feeds...")
             next_update = self._subreddits_loop()
             # Update db.json
             if not self.testing:
