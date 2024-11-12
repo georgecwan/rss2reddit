@@ -1,12 +1,13 @@
-from datetime import datetime, timedelta
-import math
 import logging
-import time
+import math
 import sys
+import time
+from datetime import datetime, timedelta
+from signal import signal, SIGINT, SIGTERM
+from pprint import pformat
 
 import praw
 import requests
-from pprint import pformat
 
 from . import utils
 
@@ -59,8 +60,8 @@ class RedditBot:
         # Create a file handler
         file_handler = logging.FileHandler(log_file, mode='w')
         file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                                                    "%Y-%m-%d %H:%M:%S"))
+        file_handler.setFormatter(
+            logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', "%Y-%m-%d %H:%M:%S"))
         self.logger.addHandler(file_handler)
         # Create a console handler and set the level to INFO with no date formatter
         console_handler = logging.StreamHandler()
@@ -86,6 +87,18 @@ class RedditBot:
         # Sends Discord Notification
         utils.send_discord_message(
             f"Bot Started on {'Testing Mode' if self.testing else 'Normal Mode'} at {time.strftime('%Y-%m-%d %H:%M')}")
+        signal(SIGINT, self._handle_signal)
+        signal(SIGTERM, self._handle_signal)
+
+    def _handle_signal(self, _signum, _frame):
+        """Handles SIGINT and SIGTERM signals."""
+        utils.send_discord_message(
+            f"Bot has been terminated at {time.strftime('%Y-%m-%d %H:%M')}")
+        # Update db.json
+        if not self.testing:
+            self.logger.debug("Updating db.json...")
+            utils.update_db(self.db_file, self.db)
+        sys.exit(0)
 
     def _initialize_db(self) -> None:
         """
@@ -194,8 +207,7 @@ class RedditBot:
         # Check for errors from RSSParser.py
         if not title:
             return math.inf
-        return self._handle_rss_response(sub_info, sources, current_feed, update_entry, url, title,
-                                         link, guid)
+        return self._handle_rss_response(sub_info, sources, current_feed, update_entry, url, title, link, guid)
 
     def _rss_request(self, url: str, subreddit: str) -> str | None:
         """
@@ -291,8 +303,7 @@ class RedditBot:
                 if post.created_utc < past_timestamp:
                     return False
                 if link == post.url or utils.remove_query_params(link) == post.url:
-                    utils.send_discord_message(
-                        f"Duplicate found:\n- {link}\n- https://www.reddit.com{post.permalink}")
+                    utils.send_discord_message(f"Duplicate found:\n- {link}\n- https://www.reddit.com{post.permalink}")
                     self.logger.debug(f"Duplicate found: {link} posted at https://www.reddit.com{post.permalink}")
                     return True
                 similarity = utils.get_similarity(title, post.title)
