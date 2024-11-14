@@ -310,14 +310,14 @@ class RedditBot:
                 # Only here for testing, remove later
                 if similarity > 0.8:
                     utils.send_discord_message(
-                        f"Similar title found with a similarity of {similarity}: \n- {title} \n- {post.title}\n"
+                        f"Similar title found with a similarity of {similarity * 100:.2f}%: \n- {title} \n- {post.title}\n"
                         f"Source: https://www.reddit.com{post.permalink}")
                     self.logger.debug(
                         f"Similar title found: {title} and {post.title} with a similarity of {similarity}")
                     return True
                 elif similarity > 0.75:
                     utils.send_discord_message(
-                        f"Still posting with a similarity of {similarity}: \n- {title} \n- {post.title}\n"
+                        f"Still posting with a similarity of {similarity * 100:.2f}%: \n- {title} \n- {post.title}\n"
                         f"Source: https://www.reddit.com{post.permalink}")
         except Exception as e:
             self.logger.error(f'Error checking for duplicates: {str(e)}')
