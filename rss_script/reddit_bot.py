@@ -54,20 +54,8 @@ class RedditBot:
         Returns:
             None
         """
-        # Initializes logger (name isn't used in output)
-        self.logger = logging.getLogger('rss_script')
-        self.logger.setLevel(logging.DEBUG)
-        # Create a file handler
-        file_handler = logging.FileHandler(log_file, mode='w')
-        file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(
-            logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', "%Y-%m-%d %H:%M:%S"))
-        self.logger.addHandler(file_handler)
-        # Create a console handler and set the level to INFO with no date formatter
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO)
-        console_handler.setFormatter(logging.Formatter('%(name)s - %(levelname)s - %(message)s'))
-        self.logger.addHandler(console_handler)
+        # Initializes logger
+        self.logger = utils.configure_logger(log_file)
         # Sets testing mode
         self.testing = testing
         self.logger.info(f"Testing Mode: {'ON' if self.testing else 'OFF'}")
@@ -252,7 +240,7 @@ class RedditBot:
             guid: GUID of the latest article from the RSS feed
 
         Returns:
-
+            Timestamp of when this subreddit-RSS feed combination should next enter listening mode.
         """
         # Update db and post to Reddit
         if not update_entry['listening']:
@@ -307,7 +295,6 @@ class RedditBot:
                     self.logger.debug(f"Duplicate found: {link} posted at https://www.reddit.com{post.permalink}")
                     return True
                 similarity = utils.get_similarity(title, post.title)
-                # Only here for testing, remove later
                 if similarity > 0.8:
                     utils.send_discord_message(
                         f"Similar title found with a similarity of {similarity * 100:.2f}%: \n- {title} \n- {post.title}\n"
@@ -315,10 +302,9 @@ class RedditBot:
                     self.logger.debug(
                         f"Similar title found: {title} and {post.title} with a similarity of {similarity}")
                     return True
-                elif similarity > 0.75:
-                    utils.send_discord_message(
-                        f"Still posting with a similarity of {similarity * 100:.2f}%: \n- {title} \n- {post.title}\n"
-                        f"Source: https://www.reddit.com{post.permalink}")
+                if similarity > 0.75:
+                    self.logger.debug(
+                        f"Somewhat similar title found: {title} and {post.title} with a similarity of {similarity}")
         except Exception as e:
             self.logger.error(f'Error checking for duplicates: {str(e)}')
             return False
@@ -338,27 +324,25 @@ class RedditBot:
             """Posts to the subreddit with the given flair_text"""
             # Find flair_id
             flair_choices = list(subreddit.flair.link_templates.user_selectable())
-            for flair in flair_choices:
-                if flair["flair_text"] == flair_text:
-                    if not self.testing:
-                        subreddit.submit(title=title, url=link, resubmit=False, flair_id=flair["flair_template_id"])
-                    utils.send_discord_message(f"Posted {link} to r/{sub_name}")
-                    self.logger.info(f"Posted to {sub_name} with preset flair {flair_text}")
-                    return
+            flair = next((f for f in flair_choices if f["flair_text"] == flair_text), None)
+            if flair:
+                if not self.testing:
+                    subreddit.submit(title=title, url=link, resubmit=False, flair_id=flair["flair_template_id"])
+                utils.send_discord_message(f"Posted {link} to r/{sub_name}")
+                self.logger.info(f"Posted to {sub_name} with preset flair {flair_text}")
+                return
             # Use editable flair if no pre-defined flair found
-            for flair in flair_choices:
-                if flair['flair_text_editable']:
-                    if not self.testing:
-                        subreddit.submit(title=title, url=link, resubmit=False, flair_id=flair["flair_template_id"],
-                                         flair_text=flair_text)
-                    utils.send_discord_message(f"Posted {link} to r/{sub_name}")
-                    self.logger.info(f"Posted to {sub_name} with custom flair {flair_text}")
-                    return
+            flair = next((f for f in flair_choices if f['flair_text_editable']), None)
+            if flair:
+                if not self.testing:
+                    subreddit.submit(title=title, url=link, resubmit=False, flair_id=flair["flair_template_id"],
+                                     flair_text=flair_text)
+                utils.send_discord_message(f"Posted {link} to r/{sub_name}")
+                self.logger.info(f"Posted to {sub_name} with custom flair {flair_text}")
+                return
             # Use default flair if no editable flair found
-            if not self.testing:
-                subreddit.submit(title=title, url=link, resubmit=False)
-            utils.send_discord_message(f"Posted {link} to r/{sub_name}")
-            self.logger.info(f"Posted to {sub_name}, flair_text not found")
+            self.logger.warning(f"Flair {flair_text} not found for {sub_name}")
+            post_without_flair()
 
         def post_without_flair() -> None:
             """Posts to the subreddit without a flair"""
@@ -370,9 +354,6 @@ class RedditBot:
         # Posts to subreddit
         try:
             subreddit = self.reddit.subreddit(sub_name)
-            if flair_text:
-                post_with_flair()
-            else:
-                post_without_flair()
+            post_with_flair() if flair_text else post_without_flair()
         except Exception as e:
             self.logger.error(f'Error posting to {sub_name}: {str(e)}')

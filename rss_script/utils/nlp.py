@@ -1,6 +1,6 @@
-import en_core_web_md
+import en_core_web_lg
 
-nlp = en_core_web_md.load()
+nlp = en_core_web_lg.load()
 
 
 def get_similarity(sentence1: str, sentence2: str) -> float:
