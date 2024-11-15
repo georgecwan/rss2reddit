@@ -1,6 +1,10 @@
-import en_core_web_lg
+import spacy
 
-nlp = en_core_web_lg.load()
+try:
+    nlp = spacy.load("en_core_web_md")
+except OSError:  # If not present, download
+    spacy.cli.download("en_core_web_md")
+    nlp = spacy.load("en_core_web_md")
 
 
 def get_similarity(sentence1: str, sentence2: str) -> float:
