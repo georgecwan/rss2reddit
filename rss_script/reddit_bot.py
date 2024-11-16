@@ -263,7 +263,7 @@ class RedditBot:
             update_entry.update({'update_time': new_update})
         else:
             self.logger.debug(f"New story found! Checking for duplicates of {link}...")
-            if (self._check_blocklist(title, feed_entry['block']) or
+            if (self._check_blocklist(title, feed_entry.get('block', [])) or
                     self._check_for_duplicates(title, link, self.reddit.subreddit(sub_info['name']))):
                 new_update = int(time.time()) + 1800  # Check 30 minutes later
                 sources[url]['last_id'] = guid
