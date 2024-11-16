@@ -1,7 +1,7 @@
 # RSS2Reddit
 
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/GcWan/rss2reddit?sort=semver)
-![MIT License](https://img.shields.io/github/license/GcWan/rss2reddit)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/georgecwan/rss2reddit?sort=semver)
+![MIT License](https://img.shields.io/github/license/georgecwan/rss2reddit)
 
 ### Description
 
@@ -14,6 +14,7 @@ for new links and any updates to the RSS feed will be ignored until the script b
 To better understand the functionalities of this script, please read
 the [Config Documentation](https://github.com/GcWan/rss-to-subreddit/wiki/V2-Config-Documentation)
 in the wiki.
+
 Note: You should only use this on subreddits that you moderate. Make sure you do not break Reddit's terms of service or
 subreddit rules while using this script.
 
@@ -40,7 +41,7 @@ please find the corresponding usage instructions inside the [wiki](https://githu
 - Login to reddit and access account settings [here](https://www.reddit.com/prefs/apps/).
 - Scroll to bottom and click button to create app. (Click "are you a developer" if necessary.)
 - Fill out form as follows:
-    - Name: Subreddit-News by /u/GeoWa
+    - Name: RSS2Reddit by /u/GeoWa
     - App type: script
     - Redirect uri: http://localhost
 - The remaining fields are optional.
@@ -100,9 +101,9 @@ You can run the script using either a Python 3 environment or a Docker container
 This step only needs to be completed **_once_** after download. If you have completed this step before, skip
 to [Step 2](#step-2-start-the-script).
 
-- Install Python 3.8 or higher [here](https://www.python.org/downloads/)
+- Install Python 3.9 or higher [here](https://www.python.org/downloads/)
     - Select the option to add Python to path during installation if it appears
-    - If you have a preexisting installation of Python 3.8 or higher, you do not have to reinstall it.
+    - If you have a preexisting installation of Python 3.9 or higher, you do not have to reinstall it.
 - Open your command-line app (e.g. Powershell, Terminal, etc.)
 - Type `python --version` and press enter. Make sure that the Python version shown is 3.8 or higher. You may need to
   download a newer version of Python otherwise.
