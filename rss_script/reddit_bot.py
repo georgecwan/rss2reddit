@@ -130,16 +130,20 @@ class RedditBot:
         time.
         """
         while True:
-            self.logger.info(f"[{time.strftime('%Y-%m-%d %H:%M')}] Checking RSS feeds...")
-            next_update = self._subreddits_loop()
-            # Update db.json
-            if not self.testing:
-                self.logger.debug("Updating db.json...")
-                utils.update_db(self.db_file, self.db)
-            # Wait until next update
-            t = datetime.fromtimestamp(next_update).strftime('%Y-%m-%d %H:%M')
-            self.logger.info(f"Next update at {t}")
-            utils.until(next_update)
+            try:
+                self.logger.info(f"[{time.strftime('%Y-%m-%d %H:%M')}] Checking RSS feeds...")
+                next_update = self._subreddits_loop()
+                # Update db.json
+                if not self.testing:
+                    self.logger.debug("Updating db.json...")
+                    utils.update_db(self.db_file, self.db)
+                # Wait until next update
+                t = datetime.fromtimestamp(next_update).strftime('%Y-%m-%d %H:%M')
+                self.logger.info(f"Next update at {t}")
+                utils.until(next_update)
+            except Exception as e:
+                self.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+                sys.exit(1)
 
     def _subreddits_loop(self) -> float:
         """
@@ -259,7 +263,7 @@ class RedditBot:
             update_entry.update({'update_time': new_update})
         else:
             self.logger.debug(f"New story found! Checking for duplicates of {link}...")
-            if (self._check_blocklist(title, sub_info['block']) or
+            if (self._check_blocklist(title, feed_entry['block']) or
                     self._check_for_duplicates(title, link, self.reddit.subreddit(sub_info['name']))):
                 new_update = int(time.time()) + 1800  # Check 30 minutes later
                 sources[url]['last_id'] = guid
