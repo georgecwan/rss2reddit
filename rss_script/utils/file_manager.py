@@ -1,5 +1,7 @@
 import json
+import os
 import yaml
+from typing import TextIO
 
 
 def load_config(config_file: str) -> tuple[list[dict], dict[str, str]]:
@@ -50,5 +52,9 @@ def update_db(filename: str, db: dict[str, dict]) -> None:
     Returns:
         None
     """
-    with open(filename, 'w') as file:
+    directory = os.path.dirname(filename)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    with open(filename, 'w') as file:  # type: TextIO
         json.dump(db, file, indent=2)

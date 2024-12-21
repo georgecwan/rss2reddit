@@ -5,3 +5,5 @@ venv
 db
 README.md
 LICENSE
+logo.png
+.env
