@@ -24,4 +24,4 @@ terminaltables==3.1.10
 update-checker==0.18.0
 urllib3==2.2.3
 websocket-client==1.8.0
-yarl==1.17.1
+yarl==1.18.3
