@@ -208,6 +208,6 @@ These steps are completely optional and the script will still work without a Dis
 
 - [Reddit Help](https://www.reddithelp.com/hc/en-us)
 - [Reddit Bottiquette](https://www.reddit.com/wiki/bottiquette/)
-- [Python Virtual Environments Primer](https://realpython.com/python-virtual-environments-a-primer/#how-can-you-work-with-a-python-virtual-environment)
+- [Python Virtual Environments Primer](https://realpython.com/python-virtual-environments-a-primer/)
 - [Docker Documentation](https://docs.docker.com/)
 - [Docker Compose Documentation](https://docs.docker.com/compose/)
