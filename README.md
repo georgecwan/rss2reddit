@@ -22,6 +22,7 @@ subreddit rules while using this script.
 
 - [Setup Steps](#getting-started)
     - [Register App on Reddit](#register-app-on-reddit)
+    - [Set up Environment Variables](#set-up-environment-variables)
     - [Configuring the Script](#configuring-the-script)
 - [Running the Script](#running-the-script)
     - [Option 1: Local Python Installation](#option-1-local-python-installation)
