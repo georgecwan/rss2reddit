@@ -57,7 +57,7 @@ your own computer.
 USER_NAME=your_reddit_username
 PASSWORD=your_reddit_password
 CLIENT_ID=your_client_id
-CLIENT_SECRET=your_client_secret\
+CLIENT_SECRET=your_client_secret
 DISCORD_WEBHOOK_URL=your_discord_webhook_url
 ```
 
@@ -88,7 +88,7 @@ DISCORD_WEBHOOK_URL=your_discord_webhook_url
       flair: Flair
 ```
 
-- Copy (or rename) the `config.example.yaml` file to `config.yaml`.
+- Copy (or rename) the `config.example.yaml` file to `config.yaml` and open it in a text editor of your choice.
 - The format above is an example that posts from one RSS feed to one subreddit.
     - Replace `mysubreddit1` with the name of the subreddit you want to post to.
     - Replace `https://example.com/feed1.rss` with the URL of the RSS feed you want to listen to.
