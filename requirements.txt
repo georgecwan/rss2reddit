@@ -4,7 +4,7 @@ annotated-types==0.7.0
     # via pydantic
 beautifulsoup4==4.12.3
     # via bs4
-blis==1.1.0
+blis==1.3.0
     # via thinc
 bs4==0.0.2
     # via -r requirements.in
@@ -55,7 +55,7 @@ murmurhash==1.0.11
     #   preshed
     #   spacy
     #   thinc
-numpy==2.2.1
+numpy==2.0.2
     # via
     #   blis
     #   spacy
@@ -97,18 +97,13 @@ requests==2.32.3
     #   weasel
 rich==13.9.4
     # via typer
-setuptools==75.8.0
-    # via
-    #   marisa-trie
-    #   spacy
-    #   thinc
 shellingham==1.5.4
     # via typer
 smart-open==7.1.0
     # via weasel
 soupsieve==2.6
     # via beautifulsoup4
-spacy==3.8.3
+spacy==3.8.5
     # via -r requirements.in
 spacy-legacy==3.0.12
     # via spacy
@@ -120,7 +115,7 @@ srsly==2.5.0
     #   spacy
     #   thinc
     #   weasel
-thinc==8.3.3
+thinc==8.3.6
     # via spacy
 tqdm==4.67.1
     # via spacy
@@ -130,8 +125,10 @@ typer==0.15.1
     #   weasel
 typing-extensions==4.12.2
     # via
+    #   cloudpathlib
     #   pydantic
     #   pydantic-core
+    #   rich
     #   typer
 update-checker==0.18.0
     # via praw
