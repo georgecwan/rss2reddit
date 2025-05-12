@@ -55,7 +55,7 @@ murmurhash==1.0.11
     #   preshed
     #   spacy
     #   thinc
-numpy==2.2.1
+numpy==2.0.2
     # via
     #   blis
     #   spacy
@@ -83,7 +83,7 @@ pydantic-core==2.27.2
     # via pydantic
 pygments==2.19.1
     # via rich
-python-dotenv==1.0.1
+python-dotenv==1.1.0
     # via -r requirements.in
 pyyaml==6.0.2
     # via -r requirements.in
@@ -97,11 +97,6 @@ requests==2.32.3
     #   weasel
 rich==13.9.4
     # via typer
-setuptools==75.8.0
-    # via
-    #   marisa-trie
-    #   spacy
-    #   thinc
 shellingham==1.5.4
     # via typer
 smart-open==7.1.0
@@ -130,8 +125,10 @@ typer==0.15.1
     #   weasel
 typing-extensions==4.12.2
     # via
+    #   cloudpathlib
     #   pydantic
     #   pydantic-core
+    #   rich
     #   typer
 update-checker==0.18.0
     # via praw
