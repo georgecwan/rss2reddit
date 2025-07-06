@@ -83,7 +83,7 @@ pydantic-core==2.27.2
     # via pydantic
 pygments==2.19.1
     # via rich
-python-dotenv==1.1.0
+python-dotenv==1.1.1
     # via -r requirements.in
 pyyaml==6.0.2
     # via -r requirements.in
