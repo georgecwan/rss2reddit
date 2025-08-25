@@ -40,7 +40,7 @@ langcodes==3.5.0
     # via spacy
 language-data==1.3.0
     # via langcodes
-lxml==5.4.0
+lxml==6.0.1
     # via -r requirements.in
 marisa-trie==1.2.1
     # via language-data
