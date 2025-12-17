@@ -97,6 +97,11 @@ requests==2.32.4
     #   weasel
 rich==13.9.4
     # via typer
+setuptools==80.9.0
+    # via
+    #   marisa-trie
+    #   spacy
+    #   thinc
 shellingham==1.5.4
     # via typer
 smart-open==7.1.0
@@ -125,10 +130,8 @@ typer==0.15.1
     #   weasel
 typing-extensions==4.12.2
     # via
-    #   cloudpathlib
     #   pydantic
     #   pydantic-core
-    #   rich
     #   typer
 update-checker==0.18.0
     # via praw
