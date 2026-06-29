@@ -30,6 +30,8 @@ cymem==2.0.13
     #   preshed
     #   spacy
     #   thinc
+defusedxml==0.7.1
+    # via praw
 discordwebhook==1.0.3
     # via -r requirements.in
 idna==3.11
@@ -55,9 +57,9 @@ packaging==25.0
     #   spacy
     #   thinc
     #   weasel
-praw==7.8.1
+praw==8.0.2
     # via -r requirements.in
-prawcore==2.4.0
+prawcore==4.0.0
     # via praw
 preshed==3.0.12
     # via
@@ -75,13 +77,12 @@ python-dotenv==1.2.2
     # via -r requirements.in
 pyyaml==6.0.3
     # via -r requirements.in
-requests==2.33.0
+requests==2.34.2
     # via
     #   -r requirements.in
     #   discordwebhook
     #   prawcore
     #   spacy
-    #   update-checker
     #   weasel
 smart-open==7.5.0
     # via weasel
@@ -116,7 +117,7 @@ typing-extensions==4.15.0
     #   typing-inspection
 typing-inspection==0.4.2
     # via pydantic
-update-checker==0.18.0
+update-checker==1.0.0
     # via praw
 urllib3==2.7.0
     # via requests
