@@ -85,7 +85,7 @@ requests==2.33.0
     #   weasel
 smart-open==7.5.0
     # via weasel
-soupsieve==2.8
+soupsieve==2.8.4
     # via beautifulsoup4
 spacy==3.8.11
     # via -r requirements.in
