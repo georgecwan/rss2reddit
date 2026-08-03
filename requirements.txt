@@ -32,7 +32,7 @@ cymem==2.0.13
     #   thinc
 discordwebhook==1.0.3
     # via -r requirements.in
-idna==3.11
+idna==3.15
     # via requests
 jinja2==3.1.6
     # via spacy
